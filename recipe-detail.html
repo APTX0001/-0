@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>食谱详情</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#10b981;--green-dark:#1B5E20;--green-mid:#2E7D32}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f0f0;display:flex;justify-content:center;min-height:100vh}
+.app{width:375px;min-height:100vh;background:linear-gradient(180deg,#E8F5E9 0%,#F1F8E9 50%,#F9FBE7 100%)}
+.nav{position:fixed;top:0;left:0;right:0;z-index:999;background:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;height:44px;padding:0 10px;color:#fff}
+.nav .back{font-size:16px;color:#fff;cursor:pointer;padding:4px 8px;background:none;border:none}
+.nav .title{flex:1;text-align:center;font-size:17px;font-weight:600;margin-right:30px}
+
+.content-wrapper{padding:54px 15px 100px}
+.title-section{background:#fff;margin:15px 0;border-radius:16px;padding:22px;box-shadow:0 4px 20px rgba(76,175,80,.1);border:1px solid #E8F5E9}
+.recipe-title{font-size:22px;font-weight:bold;color:var(--green-dark);margin-bottom:12px;line-height:1.4}
+.stat-item{display:flex;align-items:center;gap:6px;color:var(--primary);font-size:14px;font-weight:500}
+
+.card{background:#fff;border-radius:16px;padding:22px;margin-bottom:15px;box-shadow:0 4px 20px rgba(76,175,80,.1);border:1px solid #E8F5E9}
+.card-header{display:flex;align-items:center;margin-bottom:16px;gap:10px}
+.card-title{font-size:16px;font-weight:600;color:var(--green-mid)}
+.publisher-info{display:flex;align-items:center;gap:16px}
+.pub-avatar{width:50px;height:50px;border-radius:50%;background:#E8F5E9;display:flex;align-items:center;justify-content:center;font-size:24px}
+.pub-name{font-size:16px;font-weight:600;color:var(--green-dark)}
+.pub-meta{font-size:14px;color:var(--primary);margin-top:4px}
+
+.gallery{position:relative;border-radius:16px;overflow:hidden;height:300px;margin-bottom:15px;box-shadow:0 8px 32px rgba(76,175,80,.12)}
+.gallery img{width:100%;height:100%;object-fit:cover}
+.gallery-dots{display:flex;justify-content:center;gap:6px;margin-top:8px}
+.gallery-dot{width:8px;height:8px;border-radius:50%;background:rgba(0,0,0,.2)}
+.gallery-dot.active{background:var(--primary);width:20px;border-radius:4px}
+
+.rich-content{line-height:1.8;color:#424242;font-size:15px}
+.rich-content p{margin-bottom:16px}
+.rich-content strong{color:var(--green-mid);font-weight:600}
+
+.recommend-section{background:#fff;border-radius:16px;padding:22px;margin:15px 0 60px;box-shadow:0 8px 32px rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.1)}
+.rec-header{display:flex;align-items:center;margin-bottom:24px;gap:12px}
+.rec-title{font-size:18px;font-weight:700;color:var(--green-dark)}
+.rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.rec-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.1);cursor:pointer;transition:all .2s}
+.rec-card:active{transform:translateY(-2px) scale(.98)}
+.rec-img{height:120px;background:#E8F5E9;display:flex;align-items:center;justify-content:center;font-size:32px}
+.rec-info{padding:14px}
+.rec-name{font-size:14px;font-weight:600;color:var(--green-dark);margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rec-author{font-size:12px;color:#666}
+
+.bottom-actions{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:12px 20px;box-shadow:0 -2px 10px rgba(0,0,0,.1);z-index:1000}
+.action-btn{display:flex;flex-direction:column;align-items:center;cursor:pointer;padding:8px 16px;border-radius:8px;transition:all .2s}
+.action-btn:active{transform:scale(.95);background:#f8f9fa}
+.action-icon{font-size:24px;margin-bottom:4px}
+.action-text{font-size:12px;color:#999}
+.action-text.active-c{color:#ff6b6b;font-weight:500}
+.action-text.active-l{color:var(--primary);font-weight:500}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav">
+    <button class="back" onclick="history.back()">‹ 返回</button>
+    <span class="title">食谱详情</span>
+  </div>
+  <div class="content-wrapper">
+    <div class="title-section">
+      <div class="recipe-title">低脂鸡胸肉沙拉</div>
+      <div class="stat-item">👁 2340 次浏览</div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span style="font-size:18px">👤</span><span class="card-title">发布信息</span></div>
+      <div class="publisher-info">
+        <div class="pub-avatar">👨‍🍳</div>
+        <div>
+          <div class="pub-name">王大厨</div>
+          <div class="pub-meta">📅 2026-05-03 发布</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gallery">
+      <div style="width:100%;height:100%;background:linear-gradient(135deg,#C8E6C9,#A5D6A7);display:flex;align-items:center;justify-content:center;font-size:64px">🥗</div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span style="font-size:18px">📋</span><span class="card-title">制作详情</span></div>
+      <div class="rich-content">
+        <p><strong>原料准备：</strong></p>
+        <p>鸡胸肉200g、生菜100g、小番茄10颗、黄瓜1根、橄榄油适量、盐少许、黑胡椒适量、柠檬汁少许。</p>
+        <p><strong>制作步骤：</strong></p>
+        <p>1. 鸡胸肉洗净，用盐和黑胡椒腌制15分钟；</p>
+        <p>2. 平底锅加少量橄榄油，中火煎鸡胸肉每面5-6分钟至金黄；</p>
+        <p>3. 生菜洗净撕碎，小番茄对半切，黄瓜切片；</p>
+        <p>4. 鸡胸肉切片，与蔬菜混合摆盘；</p>
+        <p>5. 淋上柠檬汁和少量橄榄油即可。</p>
+        <p><strong>营养提示：</strong>高蛋白低脂肪，富含维生素C和膳食纤维，适合减脂期间食用。</p>
+      </div>
+    </div>
+
+    <div class="recommend-section">
+      <div class="rec-header"><span>❤️</span><span class="rec-title">猜你喜欢</span></div>
+      <div class="rec-grid" id="recGrid"></div>
+    </div>
+  </div>
+
+  <div class="bottom-actions">
+    <div class="action-btn" onclick="toggleC()">
+      <span class="action-icon" id="cIcon">🤍</span>
+      <span class="action-text" id="cText">收藏</span>
+    </div>
+    <div class="action-btn" onclick="toggleL()">
+      <span class="action-icon" id="lIcon">👍🏻</span>
+      <span class="action-text" id="lText">点赞</span>
+    </div>
+  </div>
+</div>
+<script>
+var c=false,l=false;
+function toggleC(){c=!c;document.getElementById('cIcon').textContent=c?'❤️':'🤍';var t=document.getElementById('cText');t.textContent=c?'已收藏':'收藏';t.className='action-text'+(c?' active-c':'');}
+function toggleL(){l=!l;document.getElementById('lIcon').textContent=l?'👍':'👍🏻';var t=document.getElementById('lText');t.textContent=l?'已点赞':'点赞';t.className='action-text'+(l?' active-l':'');}
+
+var recs=[{Id:2,Title:'燕麦蓝莓早餐杯',ViewCount:1856,PublishUserDto:{Name:'李美食'}},{Id:3,Title:'清蒸鲈鱼配时蔬',ViewCount:3210,PublishUserDto:{Name:'赵大厨'}}];
+var h='';
+recs.forEach(function(r){
+  h+='<div class="rec-card" onclick="navTo(\'recipe-detail.html?id='+r.Id+'\')"><div class="rec-img">🥗</div><div class="rec-info"><div class="rec-name">'+r.Title+'</div><div class="rec-author">'+r.PublishUserDto.Name+' · '+r.ViewCount+'浏览</div></div></div>';
+});
+document.getElementById('recGrid').innerHTML=h;
+function navTo(url){window.location.href=url;}
+</script>
+</body>
+</html>

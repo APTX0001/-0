@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>批量录入数据</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#10b981}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f0f0;display:flex;justify-content:center;min-height:100vh}
+.app{width:375px;min-height:100vh;background:#f5f5f5}
+.nav{position:fixed;top:0;left:0;right:0;z-index:999;background:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;height:44px;padding:0 10px;color:#fff}
+.nav .back{font-size:16px;color:#fff;cursor:pointer;padding:4px 8px;background:none;border:none}
+.nav .title{flex:1;text-align:center;font-size:17px;font-weight:600;margin-right:30px}
+
+.page-content{padding:54px 10px 90px}
+.info-card{display:flex;align-items:center;background:#fff;border-radius:10px;padding:14px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.info-icon{width:36px;height:36px;background:#f0f8f0;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:12px;color:#4CAF50;font-size:16px}
+.info-title{font-size:15px;font-weight:600;color:#333;display:block}
+.info-sub{font-size:12px;color:#666}
+
+.form-item{background:#fff;border-radius:10px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.ind-header{display:flex;align-items:flex-start;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f0f0f0}
+.ind-icon{width:36px;height:36px;border-radius:8px;background:#f0f8f0;display:flex;align-items:center;justify-content:center;font-size:16px;margin-right:10px;flex-shrink:0}
+.ind-name{font-size:15px;font-weight:600;color:#333;display:block;margin-bottom:3px}
+.ind-cat{font-size:11px;color:#888;display:block;margin-bottom:2px}
+.ind-threshold{font-size:12px;color:#4CAF50;font-weight:500}
+.ind-desc{font-size:12px;color:#666;line-height:1.5;margin-bottom:14px}
+.input-group{margin-bottom:12px}
+.input-label{font-size:13px;font-weight:600;color:#333;margin-bottom:6px;display:block}
+.input-row{display:flex;align-items:center;background:#f8f8f8;border-radius:8px;padding:10px;border:1px solid transparent;transition:border .2s}
+.input-row:focus-within{border-color:#4CAF50;background:#fff}
+.input-row input{flex:1;font-size:14px;color:#333;background:transparent;border:none;outline:none}
+.input-unit{font-size:12px;color:#888;margin-left:10px;flex-shrink:0}
+.abnormal-tip{display:none;align-items:center;background:#fff3e0;border:1px solid #ffcc80;border-radius:6px;padding:8px 12px;margin-top:6px;font-size:12px;color:#FF9800}
+.abnormal-tip.show{display:flex}
+
+.submit-bar{position:fixed;bottom:0;left:0;right:0;padding:12px;background:#fff;box-shadow:0 -2px 10px rgba(0,0,0,.1)}
+.submit-btn{width:100%;height:44px;background:linear-gradient(135deg,#4CAF50,#45a049);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer}
+.submit-btn:active{transform:scale(.98)}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);color:#fff;padding:10px 20px;border-radius:6px;font-size:14px;z-index:3000;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav">
+    <button class="back" onclick="history.back()">‹ 返回</button>
+    <span class="title">批量录入数据</span>
+  </div>
+  <div class="page-content">
+    <div class="info-card">
+      <div class="info-icon">📋</div>
+      <div><span class="info-title">共 3 项指标待录入</span><span class="info-sub">请填写各项指标的测量值</span></div>
+    </div>
+    <div id="formList"></div>
+  </div>
+  <div class="submit-bar">
+    <button class="submit-btn" onclick="doSubmit()">提交数据 (3/3)</button>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+var indicators = [
+  { Id:101, Name:'体温', HealthIndicatorTypeName:'基础体征', Threshold:'36.0-37.3', Content:'测量身体温度，反映基础代谢和健康状况', Cover:'' },
+  { Id:201, Name:'空腹血糖', HealthIndicatorTypeName:'血液指标', Threshold:'3.9-6.1', Content:'空腹血糖是诊断糖尿病的重要指标', Cover:'' },
+  { Id:103, Name:'心率', HealthIndicatorTypeName:'基础体征', Threshold:'60-100', Content:'静息心率是反映心脏健康的重要指标', Cover:'' },
+];
+
+function render() {
+  var h = '';
+  indicators.forEach(function(ind,i){
+    h += '<div class="form-item">';
+    h += '<div class="ind-header">';
+    h += '<div class="ind-icon">📊</div><div>';
+    h += '<span class="ind-name">'+ind.Name+'</span>';
+    h += '<span class="ind-cat">'+ind.HealthIndicatorTypeName+'</span>';
+    h += '<span class="ind-threshold">正常范围: '+ind.Threshold+'</span>';
+    h += '</div></div>';
+    h += '<div class="ind-desc">'+ind.Content+'</div>';
+    h += '<div class="input-group"><span class="input-label">测量值</span>';
+    h += '<div class="input-row"><input type="number" class="record-value" data-idx="'+i+'" placeholder="请输入测量值" oninput="checkAbnormal('+i+')"><span class="input-unit" id="unit'+i+'"></span></div>';
+    h += '<div class="abnormal-tip" id="tip'+i+'">⚠️ 测量值超出正常范围</div></div>';
+    h += '</div>';
+  });
+  document.getElementById('formList').innerHTML = h;
+}
+
+function getUnit(th){var units=['ml','mg/dl','mmol/L','mIU/L','pmol/L','%','bpm','mmHg','kg','cm','℃'];for(var i=0;i<units.length;i++){if(th.indexOf(units[i])!==-1)return units[i];}return'';}
+function checkAbnormal(i){
+  var el = document.querySelectorAll('.record-value')[i];
+  var val = parseFloat(el.value);
+  var th = indicators[i].Threshold;
+  var tip = document.getElementById('tip'+i);
+  if (!val || isNaN(val)) { tip.classList.remove('show'); return; }
+  if (th.indexOf('-')!==-1) {
+    var parts = th.split('-').map(parseFloat);
+    if (val < parts[0] || val > parts[1]) tip.classList.add('show'); else tip.classList.remove('show');
+  }
+}
+
+function doSubmit(){showToast('提交成功');setTimeout(function(){history.back();},800);}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1500);}
+
+render();
+indicators.forEach(function(ind,i){document.getElementById('unit'+i).textContent=getUnit(ind.Threshold);});
+</script>
+</body>
+</html>

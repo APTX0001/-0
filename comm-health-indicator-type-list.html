@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>官方健康指标</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#10b981}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f0f0;display:flex;justify-content:center;min-height:100vh}
+.app{width:375px;min-height:100vh;background:#f5f5f5}
+.nav{position:fixed;top:0;left:0;right:0;z-index:999;background:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;height:44px;padding:0 10px;color:#fff}
+.nav .back{font-size:16px;color:#fff;cursor:pointer;padding:4px 8px;background:none;border:none}
+.nav .title{flex:1;text-align:center;font-size:17px;font-weight:600;margin-right:30px}
+
+.page-content{padding:54px 10px 20px}
+.page-desc{background:#fff;border-radius:10px;padding:14px;margin:10px;box-shadow:0 1px 6px rgba(0,0,0,.06);font-size:14px;color:#666;text-align:center;line-height:1.6}
+
+.cat-item{background:#fff;border-radius:12px;margin:0 10px 10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.cat-header{display:flex;align-items:center;padding:14px;cursor:pointer;transition:background .2s}
+.cat-header:active{background:#f8f8f8}
+.cat-icon{width:30px;height:30px;background:linear-gradient(135deg,#4CAF50,#45a049);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:10px;font-size:14px;color:#fff;flex-shrink:0}
+.cat-info{flex:1}
+.cat-name{font-size:16px;font-weight:600;color:#333;display:block;margin-bottom:3px}
+.cat-count{font-size:12px;color:#999}
+.expand-arrow{transition:transform .3s;font-size:14px;color:#666;flex-shrink:0}
+.expand-arrow.expanded{transform:rotate(180deg)}
+
+.ind-list{display:none;border-top:1px solid #f0f0f0;background:#fafafa}
+.ind-list.show{display:block}
+.ind-item{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .2s}
+.ind-item:last-child{border-bottom:none}
+.ind-item:active{background:#f0f0f0}
+.ind-cover{width:36px;height:36px;border-radius:8px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;margin-right:10px;font-size:16px;flex-shrink:0}
+.ind-content{flex:1}
+.ind-name{font-size:14px;font-weight:600;color:#333;display:block;margin-bottom:4px}
+.ind-desc{font-size:12px;color:#666;line-height:1.4;margin-bottom:6px}
+.ind-th{font-size:11px;color:#4CAF50;font-weight:600}
+.select-btn{width:28px;height:28px;border:2px solid #4CAF50;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;background:#fff;color:#4CAF50;transition:all .3s;flex-shrink:0;cursor:pointer}
+.select-btn.selected{background:#4CAF50;color:#fff}
+.empty{text-align:center;padding:60px 20px;color:#999}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);color:#fff;padding:10px 20px;border-radius:6px;font-size:14px;z-index:3000;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav">
+    <button class="back" onclick="history.back()">‹ 返回</button>
+    <span class="title">官方健康指标</span>
+  </div>
+  <div class="page-content">
+    <div class="page-desc">选择官方推荐的健康指标分类，科学管理您的健康数据</div>
+    <div id="catList"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+var categories = [
+  { Id:1, Name:'基础体征', HealthIndicatorDtoList:[
+    { Id:101, Name:'体温', Content:'测量身体温度，反映基础代谢和健康状况', Threshold:'36.0-37.3', IsSelected:false, Cover:'' },
+    { Id:102, Name:'体重', Content:'体重是反映营养状况的重要指标', Threshold:'50-80', IsSelected:true, Cover:'' },
+    { Id:103, Name:'心率', Content:'静息心率反映心脏健康', Threshold:'60-100', IsSelected:true, Cover:'' },
+  ]},
+  { Id:2, Name:'血液指标', HealthIndicatorDtoList:[
+    { Id:201, Name:'空腹血糖', Content:'空腹血糖是诊断糖尿病的重要指标', Threshold:'3.9-6.1', IsSelected:false, Cover:'' },
+    { Id:202, Name:'胆固醇', Content:'总胆固醇水平', Threshold:'2.8-5.2', IsSelected:false, Cover:'' },
+    { Id:203, Name:'血红蛋白', Content:'反映贫血情况', Threshold:'120-160', IsSelected:true, Cover:'' },
+  ]},
+];
+var expanded = [];
+
+function render() {
+  var h = '';
+  categories.forEach(function(cat, ci){
+    var isExp = expanded.indexOf(ci) !== -1;
+    h += '<div class="cat-item">';
+    h += '<div class="cat-header" onclick="toggleCat('+ci+')">';
+    h += '<div class="cat-icon">❤️</div><div class="cat-info"><span class="cat-name">'+cat.Name+'</span><span class="cat-count">'+cat.HealthIndicatorDtoList.length+'项指标</span></div>';
+    h += '<span class="expand-arrow'+(isExp?' expanded':'')+'">▼</span></div>';
+    h += '<div class="ind-list'+(isExp?' show':'')+'">';
+    cat.HealthIndicatorDtoList.forEach(function(ind){
+      var sel = ind.IsSelected;
+      h += '<div class="ind-item" onclick="toggleSelect('+ci+','+ind.Id+')">';
+      h += '<div class="ind-cover">📊</div><div class="ind-content"><span class="ind-name">'+ind.Name+'</span>';
+      h += '<div class="ind-desc">'+ind.Content+'</div>';
+      h += '<span class="ind-th">参考值：'+ind.Threshold+'</span></div>';
+      h += '<span class="select-btn'+(sel?' selected':'')+'">'+(sel?'✓':'+')+'</span>';
+      h += '</div>';
+    });
+    h += '</div></div>';
+  });
+  document.getElementById('catList').innerHTML = h;
+}
+
+function toggleCat(i) {
+  var idx = expanded.indexOf(i);
+  if (idx > -1) expanded.splice(idx,1); else expanded.push(i);
+  render();
+}
+
+function toggleSelect(ci, indId) {
+  var cat = categories[ci];
+  var ind = cat.HealthIndicatorDtoList.find(function(x){return x.Id===indId;});
+  if (ind) {
+    ind.IsSelected = !ind.IsSelected;
+    showToast(ind.IsSelected ? '已选择：'+ind.Name : '已取消选择：'+ind.Name);
+    render();
+  }
+}
+
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1500);}
+render();
+</script>
+</body>
+</html>

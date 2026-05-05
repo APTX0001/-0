@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>健康指标</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary-color: #10b981; --primary-light: #34d399; --primary-dark: #065f46;
+  --text-color: #374151; --text-color-light: #6b7280; --text-color-lighter: #9ca3af;
+  --bg-color: #fff; --bg-color-light: #f9fafb; --bg-color-grey: #f8fffe;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f0f0f0;
+  display: flex; justify-content: center; min-height: 100vh;
+}
+.app { width: 375px; min-height: 100vh; background: #f5f5f5; position: relative; }
+
+/* 导航栏 */
+.nav-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: var(--primary-color); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+.nav-bar .status-bar { height: 20px; }
+.nav-bar .nav-content { height: 44px; display: flex; align-items: center; justify-content: center; }
+.nav-bar .nav-title { color: #fff; font-size: 17px; font-weight: 600; }
+
+/* 内容区 */
+.page-content { padding: 70px 12px 70px; min-height: 100vh; }
+
+/* 顶部入口区域 */
+.entry-section { display: flex; gap: 8px; margin-bottom: 16px; height: 140px; }
+.left-cards { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.right-card { flex: 1; height: 100%; }
+
+.entry-card {
+  display: flex; align-items: center;
+  border-radius: 12px; padding: 12px 10px;
+  background: #fff; border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 10px rgba(0,0,0,.08);
+  cursor: pointer; transition: all .2s;
+}
+.entry-card:active { transform: scale(.98); }
+.entry-card.small { padding: 10px 8px; height: 66px; }
+.entry-card.large { padding: 12px 10px; height: 100%; flex-direction: column; justify-content: center; text-align: center; }
+.entry-icon, .entry-icon-large {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin-right: 8px; flex-shrink: 0;
+  background: #f0fdf4;
+}
+.entry-icon-large { width: 40px; height: 40px; margin: 0 auto 10px; }
+.entry-icon img, .entry-icon-large img { width: 20px; height: 20px; }
+.entry-icon-large img { width: 28px; height: 28px; }
+.entry-content { flex: 1; min-width: 0; }
+.entry-content-large { text-align: center; }
+.entry-title { font-size: 13px; font-weight: 600; color: #333; margin-bottom: 2px; }
+.entry-title.primary { color: #2E7D32; }
+.entry-title.secondary { color: #388E3C; }
+.entry-title-large { font-size: 15px; font-weight: 600; color: #00695C; margin-bottom: 4px; }
+.entry-subtitle { font-size: 10px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entry-subtitle-large { font-size: 12px; color: #666; line-height: 1.4; }
+.entry-arrow { margin-left: 6px; color: #aaa; font-size: 14px; flex-shrink: 0; }
+
+/* 标题操作区 */
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px; }
+.section-title { display: flex; align-items: center; gap: 6px; }
+.title-text { font-size: 16px; font-weight: 600; color: #333; }
+.action-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 500;
+  color: #fff; background: #4CAF50; border: none; cursor: pointer;
+  box-shadow: 0 1px 6px rgba(76,175,80,.3);
+}
+.action-btn.cancel { background: linear-gradient(135deg, #F44336, #D32F2F); }
+
+/* 选择状态栏 */
+.selection-status {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px; background: #fff; border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.1); margin-bottom: 12px;
+}
+.status-info { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: #333; }
+.batch-btn {
+  padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 500;
+  color: #fff; background: #4CAF50; border: none; cursor: pointer;
+}
+
+/* 分类 */
+.category-wrapper { margin-bottom: 16px; }
+.category-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; background: #fff; border-radius: 12px 12px 0 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.category-title { font-size: 14px; font-weight: 600; color: #333; }
+.category-count { font-size: 12px; color: #888; background: #f5f5f5; padding: 4px 10px; border-radius: 10px; }
+
+/* 指标卡片 */
+.indicators-grid { background: #fff; border-radius: 0 0 12px 12px; overflow: hidden; }
+.indicator-card {
+  display: flex; align-items: center; padding: 14px;
+  border-bottom: 1px solid #f8f8f8; cursor: pointer;
+  transition: background .2s; position: relative;
+}
+.indicator-card:last-child { border-bottom: none; }
+.indicator-card:active { background: #f8f8f8; }
+.indicator-card.selected { background: #e8f5e9; }
+.indicator-card.selection-mode { background: #f0f8f0; }
+.indicator-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: #f0f8f0; display: flex; align-items: center; justify-content: center;
+  margin-right: 12px; font-size: 20px; flex-shrink: 0;
+}
+.indicator-info { flex: 1; min-width: 0; }
+.indicator-name { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 4px; }
+.indicator-threshold { font-size: 12px; color: #4CAF50; margin-bottom: 3px; font-weight: 500; }
+.indicator-content { font-size: 11px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.indicator-arrow { margin-left: 8px; color: #ccc; flex-shrink: 0; }
+
+/* 选择框 */
+.checkbox {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 2px solid #4CAF50; display: flex; align-items: center; justify-content: center;
+  background: #fff; margin-right: 8px; flex-shrink: 0; font-size: 12px; color: #fff;
+}
+.checkbox.checked { background: #4CAF50; }
+
+/* 空状态 */
+.empty-state { text-align: center; padding: 60px 20px; }
+.empty-text { font-size: 16px; font-weight: 500; color: #666; margin-bottom: 6px; }
+.empty-subtitle { font-size: 13px; color: #999; }
+
+/* 操作弹窗 */
+.modal-overlay {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,.4); z-index: 2000; align-items: center; justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal-sheet {
+  background: #fff; width: 280px; border-radius: 14px; overflow: hidden;
+}
+.modal-sheet .sheet-item {
+  padding: 16px; text-align: center; font-size: 16px; color: #333;
+  border-bottom: 1px solid #f0f0f0; cursor: pointer;
+}
+.modal-sheet .sheet-item:active { background: #f5f5f5; }
+.modal-sheet .sheet-item.danger { color: #F44336; }
+.modal-sheet .sheet-cancel {
+  padding: 14px; text-align: center; font-size: 15px; color: #999;
+  background: #f8f8f8; cursor: pointer; border-top: 6px solid #f0f0f0;
+}
+
+/* Toast */
+.toast {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  background: rgba(0,0,0,.75); color: #fff; padding: 10px 20px;
+  border-radius: 6px; font-size: 14px; z-index: 3000; opacity: 0; transition: opacity .3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+/* 底部导航 */
+.footer-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; display: flex;
+  background: #fff; box-shadow: 0 -2px 8px rgba(0,0,0,.1); z-index: 999;
+  border-top: 1px solid #f0f0f0; padding-bottom: 8px;
+}
+.footer-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 0; cursor: pointer; }
+.footer-icon { width: 20px; height: 20px; border-radius: 4px; opacity: .8; background: var(--text-color-light); margin-bottom: 2px; }
+.footer-item.active .footer-icon { opacity: 1; background: var(--primary-color); }
+.footer-label { font-size: 10px; color: var(--text-color-light); }
+.footer-item.active .footer-label { color: var(--primary-color); font-weight: 500; font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 导航栏 -->
+  <div class="nav-bar">
+    <div class="status-bar"></div>
+    <div class="nav-content"><span class="nav-title">健康指标</span></div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- 入口卡片区 -->
+    <div class="entry-section">
+      <div class="left-cards">
+        <div class="entry-card small" onclick="navTo('comm-health-indicator-type-list.html')">
+          <div class="entry-icon">📋</div>
+          <div class="entry-content">
+            <div class="entry-title primary">官方选择指标</div>
+            <div class="entry-subtitle">从官方推荐的健康指标中选择</div>
+          </div>
+          <span class="entry-arrow">›</span>
+        </div>
+        <div class="entry-card small" onclick="navTo('health-indicator-form.html')">
+          <div class="entry-icon">➕</div>
+          <div class="entry-content">
+            <div class="entry-title secondary">自主添加指标</div>
+            <div class="entry-subtitle">创建个性化的健康指标</div>
+          </div>
+          <span class="entry-arrow">›</span>
+        </div>
+      </div>
+      <div class="right-card">
+        <div class="entry-card large" onclick="navTo('health-record-list.html')">
+          <div class="entry-icon-large">📝</div>
+          <div class="entry-content-large">
+            <div class="entry-title-large">我的填写</div>
+            <div class="entry-subtitle-large">查看历史健康数据记录</div>
+          </div>
+          <span class="entry-arrow">›</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 我的健康指标 -->
+    <div id="indicatorSection">
+      <div class="section-header">
+        <div class="section-title">
+          <span style="color:#4CAF50">☰</span>
+          <span class="title-text">我的健康指标</span>
+        </div>
+        <button class="action-btn" id="selectBtn" onclick="toggleSelection()">
+          <span id="selectBtnIcon">☐</span> <span id="selectBtnText">选择指标</span>
+        </button>
+      </div>
+
+      <!-- 选择状态栏 -->
+      <div class="selection-status" id="selectionBar" style="display:none">
+        <div class="status-info">
+          <span style="color:#4CAF50">ℹ</span>
+          <span id="selectedCount">已选择 0 项指标</span>
+        </div>
+        <button class="batch-btn" id="batchBtn" onclick="goBatchRecord()" disabled style="opacity:.5">批量录入数据</button>
+      </div>
+
+      <!-- 指标列表容器 -->
+      <div id="indicatorList"></div>
+
+      <!-- 空状态 -->
+      <div class="empty-state" id="emptyState" style="display:none">
+        <div style="font-size:40px;color:#ccc;margin-bottom:12px">📋</div>
+        <div class="empty-text">暂无健康指标</div>
+        <div class="empty-subtitle">点击上方按钮添加您的第一个健康指标</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 操作弹窗 -->
+  <div class="modal-overlay" id="actionModal" onclick="closeActionModal()">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="sheet-item" onclick="editIndicator()">编辑指标</div>
+      <div class="sheet-item danger" onclick="confirmDelete()">删除指标</div>
+      <div class="sheet-cancel" onclick="closeActionModal()">取消</div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- 底部导航 -->
+  <div class="footer-bar">
+    <div class="footer-item" onclick="navTo('index.html')">
+      <div class="footer-icon"></div><span class="footer-label">首 页</span>
+    </div>
+    <div class="footer-item active" onclick="navTo('health-indicator-list.html')">
+      <div class="footer-icon" style="background:var(--primary-color)"></div><span class="footer-label" style="color:var(--primary-color);font-weight:500">健康指标</span>
+    </div>
+    <div class="footer-item" onclick="navTo('user-center.html')">
+      <div class="footer-icon"></div><span class="footer-label">个人中心</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// 模拟数据：用户已有的健康指标（按分类分组）
+var userIndicators = [
+  {
+    Id: 1, Name: '基础体征',
+    HealthIndicatorDtoList: [
+      { Id: 101, Name: '体温', HealthIndicatorTypeId: 1, Threshold: '36.0-37.3', Content: '测量身体温度，反映健康状况', Cover: '' },
+      { Id: 102, Name: '体重', HealthIndicatorTypeId: 1, Threshold: '50-80', Content: '体重是反映营养状况的重要指标', Cover: '' },
+      { Id: 103, Name: '心率', HealthIndicatorTypeId: 1, Threshold: '60-100', Content: '静息心率反映心脏健康', Cover: '' },
+    ]
+  },
+  {
+    Id: 2, Name: '血液指标',
+    HealthIndicatorDtoList: [
+      { Id: 201, Name: '空腹血糖', HealthIndicatorTypeId: 2, Threshold: '3.9-6.1', Content: '空腹血糖是诊断糖尿病的重要指标', Cover: '' },
+      { Id: 202, Name: '胆固醇', HealthIndicatorTypeId: 2, Threshold: '2.8-5.2', Content: '总胆固醇水平', Cover: '' },
+    ]
+  }
+];
+
+var isSelectionMode = false;
+var selectedIndicators = [];
+var currentIndicator = null;
+
+// 渲染
+function renderIndicators() {
+  var container = document.getElementById('indicatorList');
+  var emptyState = document.getElementById('emptyState');
+
+  if (userIndicators.length === 0) {
+    container.innerHTML = '';
+    emptyState.style.display = 'block';
+    return;
+  }
+  emptyState.style.display = 'none';
+
+  var html = '';
+  userIndicators.forEach(function(cat) {
+    html += '<div class="category-wrapper">';
+    html += '<div class="category-header">';
+    html += '<span class="category-title">'+cat.Name+'</span>';
+    html += '<span class="category-count">'+cat.HealthIndicatorDtoList.length+'项指标</span>';
+    html += '</div>';
+    html += '<div class="indicators-grid">';
+    cat.HealthIndicatorDtoList.forEach(function(ind) {
+      var selClass = isSelectionMode ? ' selection-mode' : '';
+      if (isIndicatorSelected(ind.Id)) selClass += ' selected';
+      html += '<div class="indicator-card'+selClass+'" onclick="onCardClick(event, '+ind.Id+')" data-id="'+ind.Id+'">';
+      if (isSelectionMode) {
+        html += '<div class="checkbox'+ (isIndicatorSelected(ind.Id) ? ' checked' : '') +'">'+ (isIndicatorSelected(ind.Id) ? '✓' : '') +'</div>';
+      }
+      html += '<div class="indicator-icon">' + (ind.Cover ? '<img src="'+ind.Cover+'" style="width:24px;height:24px">' : '📊') + '</div>';
+      html += '<div class="indicator-info">';
+      html += '<div class="indicator-name">'+ind.Name+'</div>';
+      html += '<div class="indicator-threshold">正常值: '+ind.Threshold+'</div>';
+      html += '<div class="indicator-content">'+ind.Content+'</div>';
+      html += '</div>';
+      if (!isSelectionMode) html += '<span class="indicator-arrow">›</span>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+function isIndicatorSelected(id) {
+  return selectedIndicators.some(function(item){ return item.Id === id; });
+}
+
+function findIndicator(id) {
+  for (var i = 0; i < userIndicators.length; i++) {
+    var list = userIndicators[i].HealthIndicatorDtoList;
+    for (var j = 0; j < list.length; j++) {
+      if (list[j].Id === id) return list[j];
+    }
+  }
+  return null;
+}
+
+// 选择模式
+function toggleSelection() {
+  isSelectionMode = !isSelectionMode;
+  if (!isSelectionMode) selectedIndicators = [];
+  updateSelectionUI();
+  renderIndicators();
+}
+
+function updateSelectionUI() {
+  var bar = document.getElementById('selectionBar');
+  var btn = document.getElementById('selectBtn');
+  var icon = document.getElementById('selectBtnIcon');
+  var text = document.getElementById('selectBtnText');
+  var count = document.getElementById('selectedCount');
+  var batchBtn = document.getElementById('batchBtn');
+
+  if (isSelectionMode) {
+    bar.style.display = 'flex';
+    btn.className = 'action-btn cancel';
+    icon.textContent = '✕';
+    text.textContent = '取消';
+    count.textContent = '已选择 ' + selectedIndicators.length + ' 项指标';
+    batchBtn.disabled = selectedIndicators.length === 0;
+    batchBtn.style.opacity = selectedIndicators.length === 0 ? '.5' : '1';
+  } else {
+    bar.style.display = 'none';
+    btn.className = 'action-btn';
+    icon.textContent = '☐';
+    text.textContent = '选择指标';
+    selectedIndicators = [];
+  }
+}
+
+// 卡片点击
+function onCardClick(e, id) {
+  var ind = findIndicator(id);
+  if (!ind) return;
+
+  if (isSelectionMode) {
+    var idx = selectedIndicators.findIndex(function(item){ return item.Id === id; });
+    if (idx > -1) {
+      selectedIndicators.splice(idx, 1);
+    } else {
+      var cat = userIndicators.find(function(c){ return c.HealthIndicatorDtoList.some(function(i){ return i.Id === id; }); });
+      selectedIndicators.push({
+        Id: ind.Id, Name: ind.Name, HealthIndicatorTypeId: ind.HealthIndicatorTypeId,
+        HealthIndicatorTypeName: cat ? cat.Name : '', Threshold: ind.Threshold, Content: ind.Content, Cover: ind.Cover
+      });
+    }
+    updateSelectionUI();
+    renderIndicators();
+  } else {
+    currentIndicator = ind;
+    document.getElementById('actionModal').classList.add('show');
+  }
+}
+
+function closeActionModal() {
+  document.getElementById('actionModal').classList.remove('show');
+  currentIndicator = null;
+}
+
+function editIndicator() {
+  closeActionModal();
+  if (currentIndicator) navTo('health-indicator-form.html?id=' + currentIndicator.Id);
+}
+
+function confirmDelete() {
+  closeActionModal();
+  if (!currentIndicator) return;
+  // 模拟删除
+  for (var i = 0; i < userIndicators.length; i++) {
+    var list = userIndicators[i].HealthIndicatorDtoList;
+    var idx = list.findIndex(function(item){ return item.Id === currentIndicator.Id; });
+    if (idx > -1) {
+      list.splice(idx, 1);
+      if (list.length === 0) userIndicators.splice(i, 1);
+      break;
+    }
+  }
+  showToast('删除成功');
+  renderIndicators();
+}
+
+function goBatchRecord() {
+  if (selectedIndicators.length === 0) {
+    showToast('请先选择指标');
+    return;
+  }
+  localStorage.setItem('selectedIndicators', JSON.stringify(selectedIndicators));
+  navTo('batch-record-form.html');
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 1500);
+}
+
+function navTo(url) { window.location.href = url; }
+
+// 初始渲染
+renderIndicators();
+</script>
+</body>
+</html>

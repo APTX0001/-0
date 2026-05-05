@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>我的食谱</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#10b981}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f0f0;display:flex;justify-content:center;min-height:100vh}
+.app{width:375px;min-height:100vh;background:#f5f5f5}
+.nav{position:fixed;top:0;left:0;right:0;z-index:999;background:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;height:44px;padding:0 10px;color:#fff}
+.nav .back{font-size:16px;color:#fff;cursor:pointer;padding:4px 8px;background:none;border:none}
+.nav .title{flex:1;text-align:center;font-size:17px;font-weight:600;margin-right:30px}
+
+.tabs{display:flex;background:#fff;padding:10px 15px;position:sticky;top:44px;z-index:10;gap:6px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.tab{flex:1;text-align:center;padding:8px;font-size:13px;color:#666;border-radius:8px;background:#f5f5f5;cursor:pointer;transition:all .2s}
+.tab.active{color:var(--primary);background:rgba(16,185,129,.1);font-weight:600}
+
+.page-body{padding:12px 15px 90px}
+.recipe-item{background:#fff;border-radius:14px;overflow:hidden;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.video-area{position:relative;height:200px;background:#000;display:flex;align-items:center;justify-content:center;color:#fff;font-size:40px}
+.audit-badge{position:absolute;top:10px;right:10px;padding:4px 10px;border-radius:10px;font-size:12px;color:#fff}
+.badge-approved{background:#34c759}
+.badge-pending{background:#ff9500}
+.badge-rejected{background:#ff3b30}
+.recipe-info{padding:16px}
+.recipe-title{font-size:18px;font-weight:600;color:#333;margin-bottom:10px}
+.recipe-meta{display:flex;gap:16px;font-size:12px;color:#999;margin-bottom:10px}
+.audit-reply{background:#f8f9fa;padding:10px;border-radius:8px;border-left:3px solid var(--primary);font-size:12px;color:#333;margin-bottom:10px}
+.recipe-actions{display:flex;gap:12px;padding:0 16px 16px}
+.action-btn{display:flex;align-items:center;padding:6px 12px;border-radius:8px;border:2px solid;font-size:12px;cursor:pointer}
+.edit-btn{border-color:var(--primary);color:var(--primary);background:rgba(16,185,129,.1)}
+.delete-btn{border-color:#FF3B30;color:#FF3B30;background:rgba(255,59,48,.1)}
+.fab{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;border-radius:25px;padding:12px 28px;display:flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 4px 16px rgba(16,185,129,.3);font-size:15px;font-weight:500;z-index:99}
+.empty{text-align:center;padding:80px 20px;color:#999}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);color:#fff;padding:10px 20px;border-radius:6px;font-size:14px;z-index:3000;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav">
+    <button class="back" onclick="history.back()">‹ 返回</button>
+    <span class="title">我的食谱</span>
+  </div>
+  <div class="tabs" id="tabs">
+    <span class="tab active" onclick="switchTab(null,this)">全部</span>
+    <span class="tab" onclick="switchTab(1,this)">待审核</span>
+    <span class="tab" onclick="switchTab(2,this)">审核通过</span>
+    <span class="tab" onclick="switchTab(3,this)">审核失败</span>
+  </div>
+  <div class="page-body" id="list"></div>
+  <div class="fab" onclick="navTo('recipe-form.html')">+ 新增食谱</div>
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+var recipes=[
+  {Id:1,Title:'低脂鸡胸肉沙拉',VideoUrl:'',ViewCount:2340,AuditStatus:2,AuditStatusFormat:'审核通过',CreationTime:'2026-05-03',AuditReply:''},
+  {Id:2,Title:'燕麦蓝莓早餐杯',VideoUrl:'',ViewCount:1560,AuditStatus:1,AuditStatusFormat:'待审核',CreationTime:'2026-05-04',AuditReply:''},
+  {Id:3,Title:'高糖甜品蛋糕',VideoUrl:'',ViewCount:420,AuditStatus:3,AuditStatusFormat:'审核拒绝',CreationTime:'2026-04-20',AuditReply:'请优化食谱的营养搭配，减少糖分含量。'},
+];
+var activeTab=null;
+function switchTab(s,el){
+  activeTab=s;
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  el.classList.add('active');
+  render();
+}
+function render(){
+  var filtered=recipes.filter(function(r){return activeTab===null||r.AuditStatus===activeTab;});
+  var el=document.getElementById('list'),h='';
+  if(!filtered.length){el.innerHTML='<div class="empty">暂无食谱</div>';return;}
+  filtered.forEach(function(r){
+    var bc=r.AuditStatus===2?'badge-approved':(r.AuditStatus===3?'badge-rejected':'badge-pending');
+    h+='<div class="recipe-item">';
+    h+='<div class="video-area">🎬<span class="audit-badge '+bc+'">'+r.AuditStatusFormat+'</span></div>';
+    h+='<div class="recipe-info"><div class="recipe-title">'+r.Title+'</div>';
+    h+='<div class="recipe-meta"><span>👁 '+r.ViewCount+'次浏览</span><span>📅 '+r.CreationTime+'</span></div>';
+    if(r.AuditReply) h+='<div class="audit-reply"><strong>审核意见：</strong>'+r.AuditReply+'</div>';
+    h+='</div>';
+    h+='<div class="recipe-actions"><span class="action-btn edit-btn" onclick="navTo(\'recipe-form.html?id='+r.Id+'\')">✎ 编辑</span><span class="action-btn delete-btn" onclick="del('+r.Id+')">🗑 删除</span></div>';
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+function del(id){if(confirm('确认删除该食谱吗？')){recipes=recipes.filter(function(r){return r.Id!==id;});render();showToast('删除成功');}}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1500);}
+function navTo(url){window.location.href=url;}
+render();
+</script>
+</body>
+</html>

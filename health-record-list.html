@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>我的健康记录</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --primary: #10b981; --text: #374151; --text-light: #6b7280; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f0f0; display: flex; justify-content: center; min-height: 100vh; }
+.app { width: 375px; min-height: 100vh; background: #f5f5f5; }
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: var(--primary); box-shadow: 0 2px 6px rgba(0,0,0,.15); display: flex; align-items: center; height: 44px; padding: 0 10px; color: #fff; }
+.nav .back { font-size: 16px; color: #fff; cursor: pointer; padding: 4px 8px; background: none; border: none; }
+.nav .title { flex: 1; text-align: center; font-size: 17px; font-weight: 600; margin-right: 30px; }
+
+.content { padding: 54px 10px 20px; min-height: 100vh; }
+
+/* 查询区 */
+.query-section { background: #fff; padding: 15px; margin: 10px; border-radius: 8px; box-shadow: 0 1px 6px rgba(0,0,0,.1); }
+.query-item { margin-bottom: 10px; }
+.query-label { font-size: 14px; font-weight: 500; color: #333; margin-bottom: 6px; display: block; }
+.time-range { display: flex; align-items: center; gap: 8px; }
+.time-input { flex: 1; padding: 10px; background: #f8f8f8; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 13px; color: #333; }
+.time-sep { font-size: 14px; color: #666; flex-shrink: 0; }
+.query-btns { display: flex; gap: 10px; margin-top: 15px; }
+.query-btn, .reset-btn { flex: 1; height: 38px; border-radius: 20px; font-size: 14px; border: none; cursor: pointer; }
+.query-btn { background: var(--primary); color: #fff; }
+.reset-btn { background: #f0f0f0; color: #333; }
+
+/* 记录列表 */
+.record-list { padding: 0 10px; }
+.record-card { background: #fff; border-radius: 8px; padding: 18px; margin-bottom: 12px; box-shadow: 0 1px 6px rgba(0,0,0,.1); }
+.record-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.indicator-main { display: flex; align-items: center; gap: 10px; flex: 1; }
+.indicator-icon { width: 40px; height: 40px; border-radius: 8px; background: #f0f8f0; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.indicator-name { font-size: 16px; font-weight: bold; color: #333; display: block; }
+.indicator-type { font-size: 12px; color: #666; background: #f0f0f0; padding: 2px 8px; border-radius: 6px; }
+.delete-btn { background: #ff4757; color: #fff; border: none; padding: 5px 12px; border-radius: 12px; font-size: 12px; cursor: pointer; }
+
+.record-value-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 12px; background: #f8f9fa; border-radius: 6px; }
+.value-label { font-size: 14px; color: #666; }
+.record-value { font-size: 20px; font-weight: bold; color: #28a745; }
+.record-value.abnormal { color: #dc3545; }
+.abnormal-tag { background: #dc3545; color: #fff; padding: 3px 8px; border-radius: 8px; font-size: 10px; }
+
+.threshold-section { display: flex; gap: 6px; margin-bottom: 10px; padding: 10px; background: #e8f4f8; border-radius: 6px; font-size: 13px; }
+.threshold-label { color: #666; }
+.threshold-value { color: #007aff; font-weight: 500; }
+
+.record-meta { margin-bottom: 10px; }
+.meta-item { display: flex; gap: 6px; margin-bottom: 4px; font-size: 13px; }
+.meta-label { color: #666; min-width: 70px; }
+.meta-value { color: #333; }
+
+.indicator-description { border-top: 1px solid #eee; padding-top: 12px; font-size: 13px; }
+.desc-label { color: #666; display: block; margin-bottom: 4px; }
+.desc-text { color: #333; line-height: 1.5; }
+
+.empty-state { text-align: center; padding: 80px 0; color: #999; font-size: 16px; }
+
+.toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(0,0,0,.75); color: #fff; padding: 10px 20px; border-radius: 6px; font-size: 14px; z-index: 3000; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav">
+    <button class="back" onclick="history.back()">‹ 返回</button>
+    <span class="title">我的健康记录</span>
+  </div>
+  <div class="content">
+    <div class="query-section">
+      <div class="query-item">
+        <span class="query-label">记录时间:</span>
+        <div class="time-range">
+          <input type="date" class="time-input" id="startTime" value="2026-05-05">
+          <span class="time-sep">至</span>
+          <input type="date" class="time-input" id="endTime" value="2026-05-05">
+        </div>
+      </div>
+      <div class="query-btns">
+        <button class="query-btn" onclick="doQuery()">查询</button>
+        <button class="reset-btn" onclick="doReset()">重置</button>
+      </div>
+    </div>
+    <div class="record-list" id="recordList"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+var records = [
+  { Id:1, HealthIndicatorDto:{ Name:'体温', Cover:'', Threshold:'36.0-37.3', Content:'测量身体温度，反映基础代谢和健康状况' }, HealthIndicatorTypeDto:{ Name:'基础体征' }, RecordValue:'36.5', IsAbnormity:'N', RecordTime:'2026-05-05 08:30:00', RecordUserDto:{ Name:'健康用户' } },
+  { Id:2, HealthIndicatorDto:{ Name:'空腹血糖', Cover:'', Threshold:'3.9-6.1', Content:'空腹血糖是诊断糖尿病的重要指标' }, HealthIndicatorTypeDto:{ Name:'血液指标' }, RecordValue:'7.2', IsAbnormity:'Y', RecordTime:'2026-05-05 07:00:00', RecordUserDto:{ Name:'健康用户' } },
+  { Id:3, HealthIndicatorDto:{ Name:'心率', Cover:'', Threshold:'60-100', Content:'静息心率是反映心脏健康的重要指标' }, HealthIndicatorTypeDto:{ Name:'基础体征' }, RecordValue:'72', IsAbnormity:'N', RecordTime:'2026-05-04 09:00:00', RecordUserDto:{ Name:'健康用户' } },
+];
+
+function formatDT(s) {
+  if (!s) return '';
+  var d = new Date(s);
+  return d.toLocaleString('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+
+function render() {
+  var el = document.getElementById('recordList');
+  if (records.length === 0) {
+    el.innerHTML = '<div class="empty-state">暂无健康记录</div>';
+    return;
+  }
+  var h = '';
+  records.forEach(function(r){
+    var iconChar = r.HealthIndicatorDto.Name.charAt(0);
+    h += '<div class="record-card">';
+    h += '<div class="record-header">';
+    h += '<div class="indicator-main">';
+    h += '<div class="indicator-icon">'+iconChar+'</div>';
+    h += '<div><span class="indicator-name">'+r.HealthIndicatorDto.Name+'</span><span class="indicator-type">'+r.HealthIndicatorTypeDto.Name+'</span></div>';
+    h += '</div>';
+    h += '<button class="delete-btn" onclick="delRecord('+r.Id+')">删除</button>';
+    h += '</div>';
+    h += '<div class="record-value-section">';
+    h += '<div><span class="value-label">记录值: </span><span class="record-value'+ (r.IsAbnormity==='Y'?' abnormal':'') +'">'+r.RecordValue+'</span></div>';
+    if (r.IsAbnormity === 'Y') h += '<div class="abnormal-tag">异常</div>';
+    h += '</div>';
+    h += '<div class="threshold-section"><span class="threshold-label">正常范围:</span><span class="threshold-value">'+r.HealthIndicatorDto.Threshold+'</span></div>';
+    h += '<div class="record-meta">';
+    h += '<div class="meta-item"><span class="meta-label">记录时间:</span><span class="meta-value">'+formatDT(r.RecordTime)+'</span></div>';
+    h += '<div class="meta-item"><span class="meta-label">记录人:</span><span class="meta-value">'+r.RecordUserDto.Name+'</span></div>';
+    h += '</div>';
+    if (r.HealthIndicatorDto.Content) {
+      h += '<div class="indicator-description"><span class="desc-label">指标说明:</span><span class="desc-text">'+r.HealthIndicatorDto.Content+'</span></div>';
+    }
+    h += '</div>';
+  });
+  el.innerHTML = h;
+}
+
+function delRecord(id) {
+  if (confirm('确认删除该健康记录吗？')) {
+    records = records.filter(function(r){ return r.Id !== id; });
+    render();
+    showToast('删除成功');
+  }
+}
+
+function doQuery() { render(); showToast('查询完成'); }
+function doReset() {
+  document.getElementById('startTime').value = '2026-05-05';
+  document.getElementById('endTime').value = '2026-05-05';
+  render();
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 1500);
+}
+
+render();
+</script>
+</body>
+</html>

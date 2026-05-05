@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>健康视图</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#10b981}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f0f0;display:flex;justify-content:center;min-height:100vh}
+.app{width:375px;min-height:100vh;background:#f5f5f5}
+.nav{position:fixed;top:0;left:0;right:0;z-index:999;background:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;height:44px;padding:0 10px;color:#fff}
+.nav .back{font-size:16px;color:#fff;cursor:pointer;padding:4px 8px;background:none;border:none}
+.nav .title{flex:1;text-align:center;font-size:17px;font-weight:600;margin-right:30px}
+
+.content{padding:54px 10px 20px}
+.filter-section{background:#fff;padding:16px;margin:10px;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.filter-title{font-size:16px;font-weight:600;color:#333;text-align:center;margin-bottom:12px}
+.time-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.time-group{flex:1}
+.time-group label{font-size:12px;color:#666;display:block;margin-bottom:4px}
+.time-group input{width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;background:#f8f9fa}
+.time-sep{margin-top:18px;font-size:14px;color:#666}
+.quick-options{display:flex;gap:8px;margin-bottom:14px}
+.quick-opt{flex:1;padding:8px;text-align:center;font-size:12px;color:#666;background:#f8f9fa;border:1px solid #e0e0e0;border-radius:6px;cursor:pointer;transition:all .2s}
+.quick-opt.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-row{display:flex;gap:10px}
+.btn{flex:1;height:36px;border-radius:8px;font-size:13px;border:none;cursor:pointer}
+.btn-reset{background:#f8f9fa;color:#666;border:1px solid #e0e0e0}
+.btn-search{background:var(--primary);color:#fff}
+
+.type-scroll{background:#fff;padding:14px 0;margin:10px;border-radius:10px;overflow:hidden}
+.type-title{font-size:14px;font-weight:600;color:#333;padding:0 14px 10px}
+.type-list{display:flex;gap:10px;padding:0 14px;overflow-x:auto}
+.type-list::-webkit-scrollbar{display:none}
+.type-card{flex-shrink:0;padding:10px 20px;background:#f8f9fa;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;color:#495057;cursor:pointer;transition:all .2s;position:relative}
+.type-card.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+.chart-section{background:#fff;margin:10px;padding:16px;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.chart-title{font-size:16px;font-weight:600;color:#333;text-align:center;margin-bottom:16px}
+.chart-area{height:260px;background:#fafafa;border-radius:8px;border:1px solid #eee;position:relative;overflow:hidden;padding:20px 10px 30px 40px}
+.chart-svg{width:100%;height:100%}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:14px;padding:10px;background:#f8f9fa;border-radius:8px}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:12px;color:#666}
+.legend-dot{width:8px;height:8px;border-radius:50%}
+
+.empty{text-align:center;padding:60px 20px;color:#999;font-size:14px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav">
+    <button class="back" onclick="history.back()">‹ 返回</button>
+    <span class="title">健康视图</span>
+  </div>
+  <div class="content">
+    <div class="filter-section">
+      <div class="filter-title">数据时间范围</div>
+      <div class="time-row">
+        <div class="time-group"><label>开始时间</label><input type="date" id="startTime" value="2026-04-28"></div>
+        <span class="time-sep">至</span>
+        <div class="time-group"><label>结束时间</label><input type="date" id="endTime" value="2026-05-05"></div>
+      </div>
+      <div class="quick-options">
+        <span class="quick-opt active" onclick="setQuick('week',this)">最近一周</span>
+        <span class="quick-opt" onclick="setQuick('month',this)">最近一月</span>
+        <span class="quick-opt" onclick="setQuick('3m',this)">最近三月</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-reset" onclick="resetFilter()">重置</button>
+        <button class="btn btn-search" onclick="doQuery()">查询</button>
+      </div>
+    </div>
+
+    <div class="type-scroll">
+      <div class="type-title">选择指标类型</div>
+      <div class="type-list" id="typeList">
+        <span class="type-card active" onclick="selectType('temp',this)">体温</span>
+        <span class="type-card" onclick="selectType('weight',this)">体重</span>
+        <span class="type-card" onclick="selectType('hr',this)">心率</span>
+        <span class="type-card" onclick="selectType('bg',this)">血糖</span>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title">健康数据趋势</div>
+      <div class="chart-area">
+        <svg class="chart-svg" viewBox="0 0 280 200" id="chartSvg"></svg>
+      </div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </div>
+</div>
+<script>
+function drawChart() {
+  var svg = document.getElementById('chartSvg');
+  var data = [36.3, 36.5, 36.7, 36.4, 37.0, 36.5, 36.2, 36.6];
+  var labels = ['04-28','04-29','04-30','05-01','05-02','05-03','05-04','05-05'];
+  var w=280,h=200,pl=35,pr=10,pt=20,pb=30;
+  var max=Math.max.apply(null,data)+0.5, min=Math.min.apply(null,data)-0.5;
+  var xs=[],ys=[];
+  data.forEach(function(v,i){xs.push(pl+(w-pl-pr)/(data.length-1)*i);ys.push(pt+(h-pt-pb)*(1-(v-min)/(max-min)));});
+
+  var path='M'+xs[0]+','+ys[0];
+  for(var i=1;i<xs.length;i++) path+=' L'+xs[i]+','+ys[i];
+
+  var html = '';
+  // grid lines
+  for(var g=min;g<=max;g+=0.5){
+    var gy=pt+(h-pt-pb)*(1-(g-min)/(max-min));
+    html+='<line x1="'+pl+'" y1="'+gy+'" x2="'+(w-pr)+'" y2="'+gy+'" stroke="#e0e0e0" stroke-dasharray="3,3"/>';
+    html+='<text x="'+(pl-5)+'" y="'+(gy+4)+'" text-anchor="end" font-size="10" fill="#666">'+g.toFixed(1)+'</text>';
+  }
+  // x labels
+  for(var i=0;i<labels.length;i++){html+='<text x="'+xs[i]+'" y="'+(h-5)+'" text-anchor="middle" font-size="10" fill="#666">'+labels[i]+'</text>';}
+  // line
+  html+='<path d="'+path+'" fill="none" stroke="'+'#10b981'+'" stroke-width="2"/>';
+  // dots
+  for(var i=0;i<xs.length;i++){html+='<circle cx="'+xs[i]+'" cy="'+ys[i]+'" r="4" fill="#fff" stroke="#10b981" stroke-width="2"/>';}
+  // fill
+  html+='<path d="'+path+' L'+(w-pr)+','+(h-pb)+' L'+pl+','+(h-pb)+' Z" fill="rgba(16,185,129,0.08)"/>';
+  svg.innerHTML = html;
+
+  document.getElementById('legend').innerHTML = '<div class="legend-item"><span class="legend-dot" style="background:#10b981"></span>当前选中指标</div>';
+}
+
+function setQuick(type,el){
+  document.querySelectorAll('.quick-opt').forEach(function(e){e.classList.remove('active');});
+  el.classList.add('active');
+}
+function selectType(type,el){
+  document.querySelectorAll('#typeList .type-card').forEach(function(e){e.classList.remove('active');});
+  el.classList.add('active');
+  drawChart();
+}
+function resetFilter(){document.getElementById('startTime').value='2026-04-28';document.getElementById('endTime').value='2026-05-05';}
+function doQuery(){drawChart();}
+drawChart();
+</script>
+</body>
+</html>

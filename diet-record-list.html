@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>我的饮食记录</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#10b981}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f0f0;display:flex;justify-content:center;min-height:100vh}
+.app{width:375px;min-height:100vh;background:#f8f9fa}
+.nav{position:fixed;top:0;left:0;right:0;z-index:999;background:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;height:44px;padding:0 10px;color:#fff}
+.nav .back{font-size:16px;color:#fff;cursor:pointer;padding:4px 8px;background:none;border:none}
+.nav .title{flex:1;text-align:center;font-size:17px;font-weight:600;margin-right:30px}
+
+.content{padding:54px 10px 100px}
+.calendar-box{background:#fff;margin:10px;border-radius:12px;padding:15px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.selected-date{padding:12px 20px;background:#fff;margin:0 10px;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.05);font-size:16px;font-weight:600;color:var(--primary)}
+
+.meal-section{background:#fff;border-radius:14px;margin:0 10px 12px;box-shadow:0 2px 8px rgba(0,0,0,.05);overflow:hidden}
+.meal-header{padding:18px;border-bottom:1px solid #f0f0f0}
+.meal-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.meal-name{font-size:18px;font-weight:600;color:var(--primary)}
+.meal-cal{font-size:16px;font-weight:500;color:#333}
+.nutrition-info{display:flex;justify-content:space-between;font-size:12px;color:#666}
+.food-item{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid #f0f0f0}
+.food-item:last-child{border-bottom:none}
+.food-info{display:flex;align-items:center;flex:1}
+.food-img{width:40px;height:40px;border-radius:8px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:20px;margin-right:12px}
+.food-details{display:flex;flex-direction:column;font-size:13px}
+.food-name{font-size:15px;font-weight:500;color:#333;margin-bottom:4px}
+.food-unit{color:#666;margin-bottom:2px}
+.food-cal{color:var(--primary);font-weight:500}
+.food-time{font-size:11px;color:#999;margin-top:4px}
+.food-actions{cursor:pointer;padding:6px;font-size:18px}
+
+.fab{position:fixed;bottom:30px;right:20px;width:50px;height:50px;background:var(--primary);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.15);cursor:pointer;z-index:99;transition:all .3s}
+.fab:active{transform:scale(.95)}
+.fab-text{font-size:9px;margin-top:2px}
+
+.empty{text-align:center;padding:60px 20px;color:#999;font-size:14px}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);color:#fff;padding:10px 20px;border-radius:6px;font-size:14px;z-index:3000;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav">
+    <button class="back" onclick="history.back()">‹ 返回</button>
+    <span class="title">我的饮食记录</span>
+  </div>
+  <div class="content">
+    <div class="calendar-box">
+      <input type="date" id="dietDate" value="2026-05-05" onchange="changeDate()" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px">
+    </div>
+    <div class="selected-date" id="dateText">2026年05月05日</div>
+    <div id="dietList"></div>
+  </div>
+  <div class="fab" onclick="navTo('food-list.html')">
+    <span>+</span><span class="fab-text">添加</span>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+var dietData = [
+  { DateType:'早餐', TotalCalories:450, TotalProtein:25, TotalCarbohydrates:55, TotalFat:12, DietRecords:[
+    { Id:1, FoodDto:{Name:'全麦面包',Cover:''}, RecordValue:2, FoodUnitDto:{UnitName:'片',Calories:120}, RecordTime:'2026-05-05T08:00:00' },
+    { Id:2, FoodDto:{Name:'牛奶',Cover:''}, RecordValue:1, FoodUnitDto:{UnitName:'杯',Calories:150}, RecordTime:'2026-05-05T08:05:00' },
+    { Id:3, FoodDto:{Name:'鸡蛋',Cover:''}, RecordValue:1, FoodUnitDto:{UnitName:'个',Calories:80}, RecordTime:'2026-05-05T08:10:00' },
+  ]},
+  { DateType:'午餐', TotalCalories:680, TotalProtein:35, TotalCarbohydrates:70, TotalFat:22, DietRecords:[
+    { Id:4, FoodDto:{Name:'米饭',Cover:''}, RecordValue:1, FoodUnitDto:{UnitName:'碗',Calories:260}, RecordTime:'2026-05-05T12:00:00' },
+    { Id:5, FoodDto:{Name:'清炒时蔬',Cover:''}, RecordValue:2, FoodUnitDto:{UnitName:'份',Calories:80}, RecordTime:'2026-05-05T12:05:00' },
+  ]},
+  { DateType:'晚餐', TotalCalories:420, TotalProtein:28, TotalCarbohydrates:40, TotalFat:15, DietRecords:[
+    { Id:6, FoodDto:{Name:'鸡胸肉沙拉',Cover:''}, RecordValue:1, FoodUnitDto:{UnitName:'份',Calories:320}, RecordTime:'2026-05-05T18:30:00' },
+  ]}
+];
+
+function fmtTime(s){var d=new Date(s);return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+
+function render() {
+  var el = document.getElementById('dietList');
+  if (!dietData.length) { el.innerHTML='<div class="empty">该日期暂无饮食记录</div>'; return; }
+  var h = '';
+  dietData.forEach(function(m){
+    h += '<div class="meal-section"><div class="meal-header">';
+    h += '<div class="meal-title"><span class="meal-name">'+m.DateType+'</span><span class="meal-cal">'+m.TotalCalories+'千卡</span></div>';
+    h += '<div class="nutrition-info"><span>蛋白质: '+m.TotalProtein+'g</span><span>碳水: '+m.TotalCarbohydrates+'g</span><span>脂肪: '+m.TotalFat+'g</span></div>';
+    h += '</div><div class="food-records">';
+    m.DietRecords.forEach(function(r){
+      h += '<div class="food-item"><div class="food-info">';
+      h += '<div class="food-img">🍽️</div><div class="food-details">';
+      h += '<span class="food-name">'+r.FoodDto.Name+'</span>';
+      h += '<span class="food-unit">'+r.RecordValue+r.FoodUnitDto.UnitName+'</span>';
+      h += '<span class="food-cal">'+r.FoodUnitDto.Calories+'千卡</span>';
+      h += '<span class="food-time">'+fmtTime(r.RecordTime)+'</span>';
+      h += '</div></div><span class="food-actions" onclick="delRecord('+r.Id+')">🗑️</span></div>';
+    });
+    h += '</div></div>';
+  });
+  el.innerHTML = h;
+}
+
+function delRecord(id) { if(confirm('确认删除该饮食记录吗？')){showToast('删除成功');} }
+function changeDate() {
+  var v = document.getElementById('dietDate').value;
+  var parts = v.split('-');
+  document.getElementById('dateText').textContent = parts[0]+'年'+parts[1]+'月'+parts[2]+'日';
+}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1500);}
+function navTo(url){window.location.href=url;}
+render();
+</script>
+</body>
+</html>

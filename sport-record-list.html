@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>运动记录列表</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#10b981}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f0f0;display:flex;justify-content:center;min-height:100vh}
+.app{width:375px;min-height:100vh;background:#f8f9fa}
+.nav{position:fixed;top:0;left:0;right:0;z-index:999;background:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;height:44px;padding:0 10px;color:#fff}
+.nav .back{font-size:16px;color:#fff;cursor:pointer;padding:4px 8px;background:none;border:none}
+.nav .title{flex:1;text-align:center;font-size:17px;font-weight:600;margin-right:30px}
+
+.content{padding:54px 10px 100px}
+.stats-section{background:#fff;border-radius:14px;padding:18px;margin:10px;box-shadow:0 1px 8px rgba(0,0,0,.06)}
+.stats-title{display:flex;align-items:center;gap:6px;margin-bottom:14px;font-size:16px;font-weight:600;color:#2c3e50}
+.stats-row{display:flex;justify-content:space-around;margin-bottom:12px}
+.stat-card{display:flex;flex-direction:column;align-items:center;width:30%}
+.stat-value{font-size:20px;font-weight:700;color:#e74c3c;margin-bottom:4px}
+.stat-label{font-size:12px;color:#7f8c8d;margin-bottom:2px}
+.stat-unit{font-size:11px;color:#7f8c8d}
+
+.record-card{background:#fff;border-radius:14px;padding:16px;margin:10px;box-shadow:0 1px 8px rgba(0,0,0,.06)}
+.record-header{display:flex;align-items:center;margin-bottom:10px}
+.sport-icon{width:34px;height:34px;border-radius:8px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:18px;margin-right:10px}
+.sport-info{flex:1}
+.sport-name{font-size:16px;font-weight:600;color:#2c3e50;display:block}
+.record-time{font-size:11px;color:#95a5a6}
+.del-btn{padding:6px 10px;background:#fee;border-radius:6px;cursor:pointer;font-size:14px}
+.record-data{display:flex;justify-content:space-between;margin-bottom:10px;padding:10px;background:#f8f9fa;border-radius:8px}
+.data-item{display:flex;flex-direction:column;align-items:center;flex:1;font-size:14px}
+.data-label{color:#7f8c8d;margin-bottom:4px}
+.data-value{font-weight:600;color:#2c3e50}
+.data-value.cal{color:#e74c3c}
+.sport-desc{padding-top:10px;border-top:1px solid #ecf0f1;font-size:13px;color:#7f8c8d;line-height:1.5}
+
+.fab{position:fixed;bottom:30px;right:20px;width:50px;height:50px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.15);cursor:pointer;z-index:99;transition:all .3s}
+.fab:active{transform:scale(.95)}
+.empty{text-align:center;padding:80px 20px;color:#999;font-size:14px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav">
+    <button class="back" onclick="history.back()">‹ 返回</button>
+    <span class="title">运动记录列表</span>
+  </div>
+  <div class="content">
+    <div class="stats-section">
+      <div class="stats-title">📊 运动统计</div>
+      <div class="stats-row">
+        <div class="stat-card"><span class="stat-value">1580</span><span class="stat-label">总消耗卡路里</span><span class="stat-unit">卡</span></div>
+        <div class="stat-card"><span class="stat-value">420</span><span class="stat-label">本周消耗</span><span class="stat-unit">卡</span></div>
+        <div class="stat-card"><span class="stat-value">890</span><span class="stat-label">本月消耗</span><span class="stat-unit">卡</span></div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><span class="stat-value">3</span><span class="stat-label">本周运动</span><span class="stat-unit">次</span></div>
+        <div class="stat-card"><span class="stat-value">8</span><span class="stat-label">本月运动</span><span class="stat-unit">次</span></div>
+        <div class="stat-card"><span class="stat-value">197.5</span><span class="stat-label">平均消耗</span><span class="stat-unit">卡/次</span></div>
+      </div>
+    </div>
+    <div id="recordList"></div>
+  </div>
+  <div class="fab" onclick="navTo('sport-list.html')">+</div>
+</div>
+<script>
+var records = [
+  { Id:1, SportDto:{Name:'跑步',Cover:'',Content:'户外跑步是一种高效的有氧运动，能有效提高心肺功能，燃烧大量卡路里。'}, RecordValue:5, SportUnitDto:{UnitName:'公里',Calories:350}, RecordTime:'2026-05-05T07:00:00' },
+  { Id:2, SportDto:{Name:'游泳',Cover:'',Content:'游泳是全身性运动，对关节友好，适合各年龄段人群。'}, RecordValue:30, SportUnitDto:{UnitName:'分钟',Calories:250}, RecordTime:'2026-05-04T17:00:00' },
+  { Id:3, SportDto:{Name:'瑜伽',Cover:'',Content:'瑜伽能改善身体柔韧性，缓解压力，调节身心平衡。'}, RecordValue:60, SportUnitDto:{UnitName:'分钟',Calories:180}, RecordTime:'2026-05-03T06:30:00' },
+];
+function fmtTime(s){var d=new Date(s),n=new Date(),diff=Math.floor((n-d)/3600000);if(diff<1)return'刚刚';if(diff<24)return diff+'小时前';var days=Math.floor(diff/24);return days<7?days+'天前':new Date(s).toLocaleString('zh-CN');}
+function render(){
+  var el=document.getElementById('recordList'),h='';
+  records.forEach(function(r){
+    h+='<div class="record-card">';
+    h+='<div class="record-header"><div class="sport-icon">🏃</div><div class="sport-info"><span class="sport-name">'+r.SportDto.Name+'</span><span class="record-time">'+fmtTime(r.RecordTime)+'</span></div><span class="del-btn" onclick="del('+r.Id+')">🗑️</span></div>';
+    h+='<div class="record-data"><div class="data-item"><span class="data-label">运动量</span><span class="data-value">'+r.RecordValue+' '+r.SportUnitDto.UnitName+'</span></div><div class="data-item"><span class="data-label">消耗卡路里</span><span class="data-value cal">'+Math.round(r.RecordValue*r.SportUnitDto.Calories)+' 卡</span></div></div>';
+    h+='<div class="sport-desc">'+r.SportDto.Content+'</div></div>';
+  });
+  el.innerHTML=h||'<div class="empty">暂无运动记录</div>';
+}
+function del(id){if(confirm('确认删除该运动记录吗？')){records=records.filter(function(r){return r.Id!==id;});render();}}
+function navTo(url){window.location.href=url;}
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AI智能分析</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#10b981}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f0f0;display:flex;justify-content:center;min-height:100vh}
+.app{width:375px;min-height:100vh;background:#fafafa}
+.nav{position:fixed;top:0;left:0;right:0;z-index:999;background:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;height:44px;padding:0 10px;color:#fff}
+.nav .back{font-size:16px;color:#fff;cursor:pointer;padding:4px 8px;background:none;border:none}
+.nav .title{flex:1;text-align:center;font-size:17px;font-weight:600;margin-right:30px}
+
+.result-container{padding:54px 10px 90px}
+.section{background:#fff;border-radius:14px;padding:18px;margin-bottom:14px;border:1px solid #eee}
+.card-title{font-size:16px;font-weight:600;color:#333;padding-bottom:12px;border-bottom:1px solid #eee;margin-bottom:14px}
+
+.score-section{display:flex;align-items:center;margin-bottom:16px}
+.score-circle{width:56px;height:56px;border:2px solid #007bff;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-right:18px;background:#f8f9fa;flex-shrink:0}
+.score-num{font-size:22px;font-weight:bold;color:#007bff;line-height:1}
+.score-total{font-size:10px;color:#666}
+.level-text{font-size:16px;font-weight:600;color:#333;display:block}
+.level-desc{font-size:12px;color:#666}
+.summary-text{font-size:13px;color:#555;line-height:1.6;margin-top:10px}
+
+.risk-item{padding:14px;background:#fff;border-radius:10px;margin-bottom:10px;border:1px solid #eee;border-left:3px solid #666}
+.risk-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.risk-info{display:flex;align-items:center;gap:8px}
+.risk-type{font-size:14px;font-weight:600;color:#333}
+.risk-desc{font-size:13px;color:#666;line-height:1.5;margin-bottom:8px}
+.risk-sug{background:#f8f9fa;padding:10px;border-radius:6px;font-size:12px;color:#666}
+.risk-sug strong{color:#333}
+
+.tag{display:inline-block;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:500}
+.tag-error{background:#f8d7da;color:#721c24}
+.tag-warning{background:#fff3cd;color:#856404}
+.tag-success{background:#d4edda;color:#155724}
+.tag-primary{background:#cce5ff;color:#004085}
+
+.score-bar{margin-bottom:14px}
+.score-label{font-size:14px;font-weight:600;color:#333;display:block;margin-bottom:8px}
+.bar{width:100%;height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden;margin-bottom:4px}
+.bar-fill{height:100%;background:#007bff;border-radius:4px;transition:width .3s}
+.bar-val{font-size:12px;color:#666}
+
+.assess-item{margin-bottom:14px;padding:12px;background:#f8f9fa;border-radius:8px}
+.assess-label{font-size:14px;font-weight:600;color:#333;display:block;margin-bottom:6px}
+.assess-value{font-size:13px;color:#666;line-height:1.5}
+.rec-list{background:#f8f9fa;padding:12px;border-radius:8px}
+.rec-title{font-size:13px;font-weight:600;color:#333;margin-bottom:8px;display:block}
+.rec-item{margin-bottom:6px;font-size:12px;color:#555;line-height:1.5}
+
+.indicator-item{padding:12px;background:#f8f9fa;border-radius:8px;margin-bottom:10px;border:1px solid #eee}
+.ind-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.ind-name{font-size:15px;font-weight:600;color:#333}
+.ind-detail{font-size:12px;color:#666;margin-bottom:6px}
+.ind-detail span{color:#333;margin-left:4px}
+.ind-advice{margin-top:10px;padding:10px;background:#fff;border-radius:6px;font-size:12px;color:#666}
+.ind-advice strong{color:#4CAF50}
+
+.rec-card{padding:14px;background:#f8f9fa;border-radius:10px;margin-bottom:10px;border:1px solid #eee}
+.rec-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.rec-card-title{font-size:14px;font-weight:600;color:#333}
+.rec-type{margin-bottom:8px;font-size:12px;color:#666}
+.rec-content{font-size:13px;color:#555;line-height:1.5;margin-bottom:8px}
+.rec-effect{background:#fff;padding:8px;border-radius:6px;font-size:12px;color:#666}
+
+.loading{text-align:center;padding:80px 20px}
+.spinner{width:60px;height:60px;border:4px solid #e0e0e0;border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:16px;color:#333;font-weight:500}
+.analysis-time{text-align:center;padding:14px;font-size:11px;color:#999}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav">
+    <button class="back" onclick="history.back()">‹ 返回</button>
+    <span class="title">AI智能分析</span>
+  </div>
+  <div class="result-container">
+    <!-- 总评 -->
+    <div class="section">
+      <div class="card-title">🎯 健康总评</div>
+      <div class="score-section">
+        <div class="score-circle"><span class="score-num">78</span><span class="score-total">/100</span></div>
+        <div><span class="level-text" style="color:#007bff">良好</span><span class="level-desc">健康等级</span></div>
+      </div>
+      <div class="summary-text">您的整体健康状况良好。部分指标略有偏高，建议关注空腹血糖和体重管理。保持现有运动习惯，适当调整饮食结构即可。</div>
+    </div>
+
+    <!-- 风险 -->
+    <div class="section">
+      <div class="card-title">⚠️ 健康风险评估</div>
+      <div class="risk-item">
+        <div class="risk-header"><div class="risk-info"><span>🩸</span><span class="risk-type">血糖偏高</span></div><span class="tag tag-warning">中风险</span></div>
+        <div class="risk-desc">您的空腹血糖值7.2mmol/L，超出正常范围3.9-6.1mmol/L，属于血糖偏高状态。</div>
+        <div class="risk-sug"><strong>💡 建议:</strong> 控制碳水化合物摄入，增加膳食纤维，定期监测血糖，建议咨询内分泌科医生。</div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-header"><div class="risk-info"><span>⚖️</span><span class="risk-type">体重管理</span></div><span class="tag tag-success">低风险</span></div>
+        <div class="risk-desc">您的体重68.2kg处于正常范围内，但BMI接近上限，需要关注。</div>
+        <div class="risk-sug"><strong>💡 建议:</strong> 继续保持运动习惯，注意饮食均衡，每月监测体重。</div>
+      </div>
+    </div>
+
+    <!-- 营养 -->
+    <div class="section">
+      <div class="card-title">🥗 营养分析</div>
+      <div class="score-bar">
+        <span class="score-label">📊 营养均衡评分</span>
+        <div class="bar"><div class="bar-fill" style="width:72%"></div></div>
+        <span class="bar-val">72/100</span>
+      </div>
+      <div class="assess-item"><span class="assess-label">🔥 热量摄入评估</span><span class="assess-value">日均热量摄入约2100千卡，处于正常范围。建议控制在1800-2200千卡之间。</span></div>
+      <div class="assess-item"><span class="assess-label">🥩 蛋白质评估</span><span class="assess-value">蛋白质摄入充足，占总热量的18%，处于合理范围。</span></div>
+      <div class="rec-list"><span class="rec-title">🍽️ 饮食建议</span>
+        <div class="rec-item">1. 增加膳食纤维摄入，每天至少25g</div>
+        <div class="rec-item">2. 减少精制碳水，选择全谷物</div>
+        <div class="rec-item">3. 适量增加优质蛋白和健康脂肪</div>
+      </div>
+    </div>
+
+    <!-- 运动 -->
+    <div class="section">
+      <div class="card-title">🏃‍♂️ 运动分析</div>
+      <div class="score-bar">
+        <span class="score-label">📈 运动频率评分</span>
+        <div class="bar"><div class="bar-fill" style="width:65%"></div></div>
+        <span class="bar-val">65/100</span>
+      </div>
+      <div class="assess-item"><span class="assess-label">💪 运动量评估</span><span class="assess-value">本周运动3次，累计消耗约420千卡。运动频率适中，建议保持每周3-5次。</span></div>
+      <div class="rec-list"><span class="rec-title">🏋️‍♀️ 运动建议</span>
+        <div class="rec-item">1. 每周至少150分钟中等强度有氧运动</div>
+        <div class="rec-item">2. 增加力量训练，每周2次</div>
+        <div class="rec-item">3. 运动前后做好热身和拉伸</div>
+      </div>
+    </div>
+
+    <!-- 建议 -->
+    <div class="section">
+      <div class="card-title">💡 健康建议</div>
+      <div class="rec-card">
+        <div class="rec-card-header"><span class="rec-card-title">定期监测血糖</span><span class="tag tag-warning">中优先级</span></div>
+        <div class="rec-type">🏷️ 类型: 医疗</div>
+        <div class="rec-content">建议每天早晨空腹测量血糖，记录变化趋势。如持续偏高请及时就医。</div>
+        <div class="rec-effect"><strong>✨ 预期效果:</strong> 及时发现血糖异常，预防糖尿病</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-card-header"><span class="rec-card-title">优化饮食结构</span><span class="tag tag-primary">常规</span></div>
+        <div class="rec-type">🏷️ 类型: 饮食</div>
+        <div class="rec-content">减少精制主食摄入，增加蔬菜和优质蛋白比例，控制总热量。</div>
+        <div class="rec-effect"><strong>✨ 预期效果:</strong> 改善血糖和体重指标</div>
+      </div>
+    </div>
+
+    <div class="analysis-time">分析时间: 2026-05-05 09:30</div>
+  </div>
+</div>
+<script>function navTo(url){window.location.href=url;}</script>
+</body>
+</html>

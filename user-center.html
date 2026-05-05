@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>个人中心</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary-color: #10b981; --primary-light: #34d399; --primary-dark: #065f46;
+  --text-color: #374151; --text-color-light: #6b7280;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f0f0f0; display: flex; justify-content: center; min-height: 100vh;
+}
+.app { width: 375px; min-height: 100vh; background: #f5f5f5; position: relative; }
+
+.nav-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: var(--primary-color); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+.nav-bar .status-bar { height: 20px; }
+.nav-bar .nav-content { height: 44px; display: flex; align-items: center; justify-content: center; }
+.nav-bar .nav-title { color: #fff; font-size: 17px; font-weight: 600; }
+
+/* 用户信息卡片 */
+.user-info-card {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 25px 20px; margin: 70px 0 10px;
+  background: #fff; border-radius: 0 0 16px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05); cursor: pointer;
+}
+.user-avatar-container { display: flex; align-items: center; }
+.user-avatar {
+  width: 60px; height: 60px; border-radius: 50%;
+  border: 2px solid #f5f5f5; background: #e8f5e9;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; flex-shrink: 0;
+}
+.user-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.user-details { margin-left: 14px; }
+.user-name { font-size: 20px; font-weight: 600; color: #333; margin-bottom: 5px; }
+.user-role {
+  font-size: 13px; color: #fff; background: var(--primary-color);
+  padding: 3px 12px; border-radius: 12px; display: inline-block; margin-bottom: 6px;
+}
+.user-openid { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 10px; font-size: 11px; }
+.user-openid.bound { background: #e8f5e8; border: 1px solid #52c41a; }
+.user-openid.unbound { background: #fff2f0; border: 1px solid #ff7875; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; margin-right: 5px; }
+.bound-dot { background: #52c41a; }
+.unbound-dot { background: #ff7875; }
+.bound .status-text { color: #389e0d; }
+.unbound .status-text { color: #cf1322; }
+.arrow-icon {
+  width: 10px; height: 10px; border-top: 2px solid #a9acb3;
+  border-right: 2px solid #a9acb3; transform: rotate(45deg); flex-shrink: 0;
+}
+
+/* 功能菜单 */
+.function-menu-section {
+  background: #fff; border-radius: 16px; margin: 10px 15px;
+  padding: 20px 15px; box-shadow: 0 1px 8px rgba(0,0,0,.04);
+}
+.menu-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 18px; padding-left: 5px; }
+.menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px 10px; }
+.menu-item {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 12px 6px; border-radius: 10px; cursor: pointer; transition: all .2s;
+}
+.menu-item:active { background: #f5f5f5; transform: scale(.95); }
+.menu-icon-wrapper {
+  width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;
+  background: #f8f9fa; border-radius: 12px; margin-bottom: 10px; font-size: 24px;
+}
+.menu-icon-wrapper img { width: 32px; height: 32px; }
+.menu-text { font-size: 13px; color: #333; font-weight: 500; }
+
+/* 退出按钮 */
+.logout-btn {
+  display: block; width: 90%; height: 44px; line-height: 44px;
+  margin: 30px auto 100px; background: var(--primary-color); color: #fff;
+  font-size: 16px; font-weight: 500; border-radius: 22px; border: none;
+  text-align: center; cursor: pointer;
+}
+
+/* 底部导航 */
+.footer-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; display: flex;
+  background: #fff; box-shadow: 0 -2px 8px rgba(0,0,0,.1); z-index: 999;
+  border-top: 1px solid #f0f0f0; padding-bottom: 8px;
+}
+.footer-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 0; cursor: pointer; }
+.footer-icon { width: 20px; height: 20px; border-radius: 4px; opacity: .8; background: var(--text-color-light); margin-bottom: 2px; }
+.footer-item.active .footer-icon { opacity: 1; background: var(--primary-color); }
+.footer-label { font-size: 10px; color: var(--text-color-light); }
+.footer-item.active .footer-label { color: var(--primary-color); font-weight: 500; font-size: 11px; }
+
+/* Toast */
+.toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(0,0,0,.75); color: #fff; padding: 10px 20px; border-radius: 6px; font-size: 14px; z-index: 3000; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- 导航栏 -->
+  <div class="nav-bar">
+    <div class="status-bar"></div>
+    <div class="nav-content"><span class="nav-title">个人中心</span></div>
+  </div>
+
+  <!-- 用户信息卡片 -->
+  <div class="user-info-card" onclick="navTo('user-info-edit.html')">
+    <div class="user-avatar-container">
+      <div class="user-avatar" id="avatarArea">👤</div>
+      <div class="user-details">
+        <div class="user-name" id="userName">健康用户</div>
+        <div class="user-role" id="userRole">普通用户</div>
+        <div class="user-openid bound" id="wechatStatus">
+          <span class="status-dot bound-dot"></span>
+          <span class="status-text">已绑定微信</span>
+        </div>
+      </div>
+    </div>
+    <div class="arrow-icon"></div>
+  </div>
+
+  <!-- 功能菜单 -->
+  <div class="function-menu-section">
+    <div class="menu-title">常用功能</div>
+    <div class="menu-grid">
+      <div class="menu-item" onclick="navTo('user-info-edit.html')">
+        <div class="menu-icon-wrapper">👤</div>
+        <span class="menu-text">个人信息</span>
+      </div>
+      <div class="menu-item" onclick="navTo('password-edit.html')">
+        <div class="menu-icon-wrapper">🔒</div>
+        <span class="menu-text">密码修改</span>
+      </div>
+      <div class="menu-item" onclick="navTo('my-health-article-list.html')">
+        <div class="menu-icon-wrapper">📖</div>
+        <span class="menu-text">我的健康知识</span>
+      </div>
+      <div class="menu-item" onclick="navTo('my-recipe-list.html')">
+        <div class="menu-icon-wrapper">🥗</div>
+        <span class="menu-text">我的食谱</span>
+      </div>
+      <div class="menu-item" onclick="navTo('collect-record-list.html')">
+        <div class="menu-icon-wrapper">❤️</div>
+        <span class="menu-text">收藏记录</span>
+      </div>
+      <div class="menu-item" onclick="navTo('like-record-list.html')">
+        <div class="menu-icon-wrapper">👍</div>
+        <span class="menu-text">点赞记录</span>
+      </div>
+      <div class="menu-item" onclick="navTo('wechat-bind.html')">
+        <div class="menu-icon-wrapper">💬</div>
+        <span class="menu-text">微信绑定</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="logout-btn" onclick="logout()">退出</button>
+
+  <!-- 底部导航 -->
+  <div class="footer-bar">
+    <div class="footer-item" onclick="navTo('index.html')">
+      <div class="footer-icon"></div><span class="footer-label">首 页</span>
+    </div>
+    <div class="footer-item" onclick="navTo('health-indicator-list.html')">
+      <div class="footer-icon"></div><span class="footer-label">健康指标</span>
+    </div>
+    <div class="footer-item active" onclick="navTo('user-center.html')">
+      <div class="footer-icon" style="background:var(--primary-color)"></div><span class="footer-label" style="color:var(--primary-color);font-weight:500">个人中心</span>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+function navTo(url) { window.location.href = url; }
+function logout() {
+  showToast('已退出登录');
+  setTimeout(function(){ navTo('login.html'); }, 800);
+}
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 1500);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>健康知识详情</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#10b981}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f0f0;display:flex;justify-content:center;min-height:100vh}
+.app{width:375px;min-height:100vh;background:#f8f9fa}
+.nav{position:fixed;top:0;left:0;right:0;z-index:999;background:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;height:44px;padding:0 10px;color:#fff}
+.nav .back{font-size:16px;color:#fff;cursor:pointer;padding:4px 8px;background:none;border:none}
+.nav .title{flex:1;text-align:center;font-size:17px;font-weight:600;margin-right:30px}
+
+.article-container{padding:54px 15px 110px}
+.article-header{background:#fff;border-radius:16px;padding:22px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.article-title{font-size:22px;font-weight:bold;color:#333;line-height:1.4;margin-bottom:14px}
+.author-info{display:flex;align-items:center;margin-bottom:16px}
+.author-avatar{width:36px;height:36px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:16px;margin-right:10px}
+.author-name{font-size:14px;color:#666;font-weight:500}
+.article-info{display:flex;flex-direction:column;gap:8px}
+.info-item{display:flex}
+.info-label{font-size:14px;color:#666;width:80px}
+.info-value{font-size:14px;color:#333}
+
+.article-content{background:#fff;border-radius:16px;padding:22px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,0,0,.1);line-height:1.8;font-size:15px;color:#333}
+.article-footer{background:#fff;border-radius:16px;padding:18px 22px;box-shadow:0 2px 10px rgba(0,0,0,.1);display:flex;justify-content:space-between;font-size:13px;color:#666}
+
+.recommend-section{background:#fff;border-radius:16px;padding:22px;margin-top:16px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.recommend-title{font-size:18px;font-weight:bold;color:#333;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f0f0f0}
+.recommend-item{display:flex;background:#f8f9fa;border-radius:10px;padding:14px;margin-bottom:12px;cursor:pointer;transition:all .2s}
+.recommend-item:active{transform:scale(.98);background:#e9ecef}
+.rec-cover{width:80px;height:60px;border-radius:8px;overflow:hidden;margin-right:14px;flex-shrink:0;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:24px}
+.rec-content{flex:1;min-width:0}
+.rec-title{font-size:14px;font-weight:600;color:#333;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rec-stats{display:flex;justify-content:space-between;font-size:11px;color:#999;margin-bottom:4px}
+.rec-meta{display:flex;gap:10px;font-size:11px}
+.rec-cat{color:var(--primary)}
+.rec-author{color:#666}
+
+.bottom-actions{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:12px 20px;box-shadow:0 -2px 10px rgba(0,0,0,.1);z-index:1000}
+.action-btn{display:flex;flex-direction:column;align-items:center;cursor:pointer;padding:8px 16px;border-radius:8px;transition:all .2s}
+.action-btn:active{transform:scale(.95);background:#f8f9fa}
+.action-icon{font-size:24px;margin-bottom:4px}
+.action-text{font-size:12px;color:#999}
+.action-text.active-collect{color:#ff6b6b;font-weight:500}
+.action-text.active-like{color:#4CAF50;font-weight:500}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav">
+    <button class="back" onclick="history.back()">‹ 返回</button>
+    <span class="title">健康知识</span>
+  </div>
+  <div class="article-container">
+    <div class="article-header">
+      <div class="article-title" id="artTitle">春季养生小贴士：如何调理身体迎接春天</div>
+      <div class="author-info">
+        <div class="author-avatar">👨‍⚕️</div>
+        <span class="author-name" id="artAuthor">张医生</span>
+      </div>
+      <div class="article-info">
+        <div class="info-item"><span class="info-label">分类：</span><span class="info-value" id="artCat">养生保健</span></div>
+      </div>
+    </div>
+
+    <div class="article-content" id="artContent">
+      <p>春季阳气生发，万物复苏，是养生的黄金季节。中医认为"春养肝"，春季养生重在调理肝脏，顺应阳气生发的特性。</p>
+      <p><strong>一、饮食调养</strong></p>
+      <p>春季饮食应以清淡为主，多吃绿色蔬菜如菠菜、芹菜、韭菜等。适当食用辛温发散的食物，有助于阳气生发。少吃酸味食物，多食甘味以养脾。</p>
+      <p><strong>二、作息规律</strong></p>
+      <p>春季应"夜卧早起"，晚上11点前入睡，早晨6-7点起床。充足的睡眠有助于肝脏修复和排毒。</p>
+      <p><strong>三、运动建议</strong></p>
+      <p>春季适合进行户外运动，如散步、慢跑、太极拳等。运动强度以微微出汗为宜，不要过度劳累。每天坚持30分钟中等强度运动即可。</p>
+      <p><strong>四、情志调节</strong></p>
+      <p>保持心情舒畅，避免情绪波动过大。可以通过冥想、听音乐、与朋友交流等方式缓解压力。</p>
+      <p>以上建议仅供参考，如有特殊健康问题请咨询专业医师。</p>
+    </div>
+
+    <div class="article-footer">
+      <span id="artTime">发布时间：2026-05-03</span>
+      <span id="artViews">浏览量：1256</span>
+    </div>
+
+    <div class="recommend-section">
+      <div class="recommend-title">相关推荐</div>
+      <div id="recList"></div>
+    </div>
+  </div>
+
+  <div class="bottom-actions">
+    <div class="action-btn" id="collectBtn" onclick="toggleCollect()">
+      <span class="action-icon" id="collectIcon">🤍</span>
+      <span class="action-text" id="collectText">收藏</span>
+    </div>
+    <div class="action-btn" id="likeBtn" onclick="toggleLike()">
+      <span class="action-icon" id="likeIcon">👍🏻</span>
+      <span class="action-text" id="likeText">点赞</span>
+    </div>
+  </div>
+</div>
+<script>
+var collected=false, liked=false;
+function toggleCollect(){
+  collected=!collected;
+  document.getElementById('collectIcon').textContent=collected?'❤️':'🤍';
+  var t=document.getElementById('collectText');
+  t.textContent=collected?'已收藏':'收藏';
+  t.className='action-text'+(collected?' active-collect':'');
+}
+function toggleLike(){
+  liked=!liked;
+  document.getElementById('likeIcon').textContent=liked?'👍':'👍🏻';
+  var t=document.getElementById('likeText');
+  t.textContent=liked?'已点赞':'点赞';
+  t.className='action-text'+(liked?' active-like':'');
+}
+
+// 推荐文章
+var recs=[
+  { Id:2, Title:'每天坚持运动30分钟，身体会发生哪些变化？', Cover:'', ViewCount:2341, CreationTime:'2026-05-02', HealthArticleTypeDto:{Name:'运动健身'}, PublishUserDto:{Name:'李教练'} },
+  { Id:4, Title:'高血压患者的日常注意事项', Cover:'', ViewCount:3456, CreationTime:'2026-04-30', HealthArticleTypeDto:{Name:'疾病管理'}, PublishUserDto:{Name:'赵主任'} },
+];
+var rh='';
+recs.forEach(function(r){
+  rh+='<div class="recommend-item" onclick="navTo(\'health-article-detail.html?id='+r.Id+'\')">';
+  rh+='<div class="rec-cover">📖</div><div class="rec-content">';
+  rh+='<div class="rec-title">'+r.Title+'</div>';
+  rh+='<div class="rec-stats"><span>'+r.ViewCount+'次浏览</span><span>'+r.CreationTime+'</span></div>';
+  rh+='<div class="rec-meta"><span class="rec-cat">'+r.HealthArticleTypeDto.Name+'</span><span class="rec-author">'+r.PublishUserDto.Name+'</span></div>';
+  rh+='</div></div>';
+});
+document.getElementById('recList').innerHTML=rh;
+function navTo(url){window.location.href=url;}
+</script>
+</body>
+</html>

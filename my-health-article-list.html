@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>我的健康知识</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#10b981}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f0f0;display:flex;justify-content:center;min-height:100vh}
+.app{width:375px;min-height:100vh;background:#f5f5f5}
+.nav{position:fixed;top:0;left:0;right:0;z-index:999;background:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;height:44px;padding:0 10px;color:#fff}
+.nav .back{font-size:16px;color:#fff;cursor:pointer;padding:4px 8px;background:none;border:none}
+.nav .title{flex:1;text-align:center;font-size:17px;font-weight:600;margin-right:30px}
+.page-body{padding:54px 15px 90px}
+.article-item{display:flex;background:#fff;border-radius:14px;margin-bottom:16px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.article-cover{width:100px;height:100px;border-radius:10px;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:32px;margin-right:16px;flex-shrink:0}
+.article-content{flex:1}
+.article-title{font-size:15px;font-weight:bold;color:#333;line-height:1.3;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.article-info{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.info-tag{font-size:11px;color:#666;padding:3px 8px;background:#f5f5f5;border-radius:6px}
+.status-pending{background:#ff9500;color:#fff}
+.status-approved{background:#34c759;color:#fff}
+.article-time{font-size:11px;color:#999;margin-bottom:12px}
+.article-actions{display:flex;gap:10px}
+.action-btn{display:flex;align-items:center;padding:6px 12px;border-radius:8px;border:2px solid;font-size:12px;cursor:pointer}
+.edit-btn{border-color:var(--primary);color:var(--primary);background:rgba(16,185,129,.1)}
+.delete-btn{border-color:#FF3B30;color:#FF3B30;background:rgba(255,59,48,.1)}
+.fab{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;border-radius:25px;padding:12px 28px;display:flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 4px 16px rgba(16,185,129,.3);font-size:15px;font-weight:500;z-index:99}
+.empty{text-align:center;padding:80px 20px;color:#999;font-size:16px}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);color:#fff;padding:10px 20px;border-radius:6px;font-size:14px;z-index:3000;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav">
+    <button class="back" onclick="history.back()">‹ 返回</button>
+    <span class="title">我的健康知识</span>
+  </div>
+  <div class="page-body" id="list"></div>
+  <div class="fab" onclick="navTo('health-article-form.html')">+ 新增文章</div>
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+var articles=[
+  {Id:1,Title:'春季养生小贴士',Cover:'',ViewCount:1256,AuditStatus:2,AuditStatusFormat:'审核通过',CreationTime:'2026-05-03',HealthArticleTypeDto:{Name:'养生保健'}},
+  {Id:2,Title:'每天运动30分钟的好处',Cover:'',ViewCount:890,AuditStatus:1,AuditStatusFormat:'待审核',CreationTime:'2026-05-04',HealthArticleTypeDto:{Name:'运动健身'}},
+];
+function render(){
+  var el=document.getElementById('list'),h='';
+  if(!articles.length){el.innerHTML='<div class="empty">暂无健康知识文章</div>';return;}
+  articles.forEach(function(a){
+    h+='<div class="article-item">';
+    h+='<div class="article-cover">📖</div><div class="article-content">';
+    h+='<div class="article-title">'+a.Title+'</div>';
+    h+='<div class="article-info"><span class="info-tag">分类: '+a.HealthArticleTypeDto.Name+'</span><span class="info-tag">浏览: '+a.ViewCount+'</span><span class="info-tag '+(a.AuditStatus===2?'status-approved':'status-pending')+'">'+a.AuditStatusFormat+'</span></div>';
+    h+='<div class="article-time">'+a.CreationTime+'</div>';
+    h+='<div class="article-actions"><span class="action-btn edit-btn" onclick="navTo(\'health-article-form.html?id='+a.Id+'\')">✎ 修改</span><span class="action-btn delete-btn" onclick="del('+a.Id+')">🗑 删除</span></div>';
+    h+='</div></div>';
+  });
+  el.innerHTML=h;
+}
+function del(id){if(confirm('确认删除该文章吗？')){articles=articles.filter(function(a){return a.Id!==id;});render();showToast('删除成功');}}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1500);}
+function navTo(url){window.location.href=url;}
+render();
+</script>
+</body>
+</html>

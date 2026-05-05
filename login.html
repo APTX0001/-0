@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>登录 - 健康管理</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f0f0f0; display: flex; justify-content: center; min-height: 100vh;
+}
+.login-container {
+  width: 375px; min-height: 100vh;
+  background: linear-gradient(135deg, #e8f8f5 0%, #f0fdf4 50%, #ffffff 100%);
+  position: relative; overflow: hidden;
+}
+.bg-decoration { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.health-circle { position: absolute; border-radius: 50%; opacity: .08; background: linear-gradient(45deg, #10b981, #34d399); }
+.health-circle-1 { width: 300px; height: 300px; top: -100px; right: -100px; animation: float 15s ease-in-out infinite; }
+.health-circle-2 { width: 180px; height: 180px; bottom: -60px; left: -60px; animation: float 20s ease-in-out infinite reverse; }
+@keyframes float {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(3deg); }
+}
+
+.header-section { padding: 80px 0 50px; text-align: center; position: relative; z-index: 1; }
+.health-icon { font-size: 70px; margin-bottom: 20px; background: linear-gradient(135deg,#10b981,#34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 6px rgba(16,185,129,.2)); display: inline-block; }
+.app-title { display: block; font-size: 26px; font-weight: 600; color: #065f46; margin-bottom: 10px; }
+.app-subtitle { display: block; font-size: 14px; color: #6b7280; opacity: .8; }
+
+.form-section { position: relative; z-index: 1; padding: 0 25px; }
+.form-container {
+  background: rgba(255,255,255,.95); border-radius: 16px;
+  padding: 35px 25px; box-shadow: 0 4px 20px rgba(0,0,0,.06);
+  border: 1px solid rgba(255,255,255,.8);
+}
+.form-group { margin-bottom: 22px; }
+.input-wrapper {
+  display: flex; align-items: center; background: #f9fafb;
+  border: 1px solid #e5e7eb; border-radius: 10px; padding: 0 14px;
+  transition: all .3s;
+}
+.input-wrapper:focus-within { border-color: #10b981; background: #fff; box-shadow: 0 0 0 3px rgba(16,185,129,.1); }
+.input-icon { font-size: 18px; color: #6b7280; margin-right: 10px; }
+.form-input { flex: 1; height: 44px; font-size: 16px; color: #374151; background: transparent; border: none; outline: none; }
+.form-input::placeholder { color: #9ca3af; }
+
+.role-wrapper { padding: 14px; background: #f9fafb; border-radius: 10px; border: 1px solid #e5e7eb; }
+.role-label { display: block; font-size: 14px; color: #374151; margin-bottom: 10px; font-weight: 500; }
+.role-options { display: flex; gap: 12px; }
+.role-option {
+  padding: 8px 20px; border-radius: 8px; font-size: 14px; border: 1px solid #e5e7eb;
+  background: #fff; color: #666; cursor: pointer; transition: all .2s;
+}
+.role-option.active { background: #10b981; color: #fff; border-color: #10b981; }
+
+.login-button {
+  width: 100%; height: 44px; background: linear-gradient(135deg, #10b981, #34d399);
+  border: none; border-radius: 22px; margin: 25px 0 18px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(16,185,129,.3); cursor: pointer; transition: all .3s;
+}
+.login-button:active { transform: translateY(1px); box-shadow: 0 2px 8px rgba(16,185,129,.2); }
+.button-text { color: #fff; font-size: 16px; font-weight: 600; }
+
+.action-links { display: flex; justify-content: space-between; padding: 0 4px; }
+.link-text { font-size: 14px; color: #6b7280; cursor: pointer; transition: color .2s; }
+.link-text.register { color: #10b981; font-weight: 500; }
+.link-text:active { color: #10b981; }
+
+.other-login { margin-top: 30px; text-align: center; }
+.divider { position: relative; margin-bottom: 22px; }
+.divider::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #e5e7eb; }
+.divider-text { display: inline-block; background: rgba(255,255,255,.95); padding: 0 12px; font-size: 12px; color: #9ca3af; position: relative; z-index: 1; }
+.login-method { display: inline-block; text-align: center; padding: 10px; cursor: pointer; }
+.method-icon-bg {
+  width: 44px; height: 44px; background: #fff; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 8px; box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  font-size: 24px; transition: all .3s;
+}
+.method-icon-bg:active { transform: scale(.95); }
+.method-label { font-size: 12px; color: #6b7280; }
+
+.toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(0,0,0,.75); color: #fff; padding: 10px 20px; border-radius: 6px; font-size: 14px; z-index: 3000; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="login-container">
+  <div class="bg-decoration">
+    <div class="health-circle health-circle-1"></div>
+    <div class="health-circle health-circle-2"></div>
+  </div>
+
+  <div class="header-section">
+    <div class="health-icon">🩺</div>
+    <span class="app-title">健康管理</span>
+    <span class="app-subtitle">守护您的健康每一天</span>
+  </div>
+
+  <div class="form-section">
+    <div class="form-container">
+      <div class="form-group">
+        <div class="input-wrapper">
+          <span class="input-icon">👤</span>
+          <input type="text" id="userName" class="form-input" placeholder="请输入用户名">
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="input-wrapper">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="password" class="form-input" placeholder="请输入密码">
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="role-wrapper">
+          <span class="role-label">用户角色</span>
+          <div class="role-options" id="roleOptions">
+            <span class="role-option active" data-role="2">普通用户</span>
+            <span class="role-option" data-role="3">医生</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="login-button" onclick="doLogin()">
+        <span class="button-text">登录</span>
+      </button>
+
+      <div class="action-links">
+        <span class="link-text" onclick="navTo('forget-password.html')">忘记密码？</span>
+        <span class="link-text register" onclick="navTo('register.html')">立即注册</span>
+      </div>
+
+      <div class="other-login">
+        <div class="divider"><span class="divider-text">其他登录方式</span></div>
+        <div class="login-method" onclick="showToast('H5不支持微信登录')">
+          <div class="method-icon-bg">💬</div>
+          <span class="method-label">微信登录</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+var selectedRole = '2';
+document.getElementById('roleOptions').addEventListener('click', function(e){
+  if (e.target.classList.contains('role-option')) {
+    document.querySelectorAll('.role-option').forEach(function(el){ el.classList.remove('active'); });
+    e.target.classList.add('active');
+    selectedRole = e.target.dataset.role;
+  }
+});
+
+function doLogin() {
+  var name = document.getElementById('userName').value.trim();
+  var pwd = document.getElementById('password').value.trim();
+  if (!name) { showToast('请输入账户'); return; }
+  if (!pwd) { showToast('请输入密码'); return; }
+  // 模拟登录成功
+  showToast('登录成功');
+  setTimeout(function(){ navTo('index.html'); }, 800);
+}
+
+function navTo(url) { window.location.href = url; }
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 1500);
+}
+</script>
+</body>
+</html>

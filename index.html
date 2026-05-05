@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>健康管理 - 首页</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary-color: #10b981;
+  --primary-light: #34d399;
+  --primary-dark: #065f46;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --info-color: #6b7280;
+  --text-color: #374151;
+  --text-color-light: #6b7280;
+  --text-color-lighter: #9ca3af;
+  --bg-color: #ffffff;
+  --bg-color-grey: #f8fffe;
+  --bg-color-light: #f9fafb;
+  --bg-color-hover: #f3f4f6;
+  --border-color: #e5e7eb;
+  --border-color-light: #f3f4f6;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.app {
+  width: 375px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fffe 0%, #ecfdf5 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ── 顶部导航栏 ── */
+.nav-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 999;
+  background: var(--primary-color);
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+}
+.nav-bar .status-bar { height: 20px; }
+.nav-bar .nav-content {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-bar .nav-title {
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* ── 内容区 ── */
+.content-wrapper {
+  padding: 74px 10px 70px;
+}
+
+/* ── 欢迎横幅 ── */
+.welcome-banner {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  border-radius: 16px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.15);
+}
+.banner-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px;
+}
+.welcome-title {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.welcome-subtitle {
+  color: rgba(255,255,255,.9);
+  font-size: 14px;
+}
+.health-icon .icon { font-size: 40px; }
+
+/* ── 今日健康概览 ── */
+.health-overview { margin-bottom: 15px; }
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 0 5px;
+}
+.title-text { font-size: 16px; font-weight: 600; color: var(--text-color); }
+.more-text { font-size: 12px; color: var(--primary-color); cursor: pointer; }
+
+/* Swiper */
+.swiper-container {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+.swiper-wrapper {
+  display: flex;
+  transition: transform 0.3s ease;
+}
+.swiper-slide {
+  min-width: 100%;
+  padding: 0 5px;
+}
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.overview-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  position: relative;
+  cursor: pointer;
+  transition: transform .2s;
+  min-height: 130px;
+  justify-content: center;
+}
+.overview-card:active { transform: scale(.98); }
+.overview-card.abnormal {
+  border: 2px solid #ff4757;
+  background: linear-gradient(135deg, #fff 0%, #fff5f5 100%);
+}
+.card-icon { font-size: 28px; }
+.card-label { font-size: 12px; color: var(--text-color-light); }
+.card-value { font-size: 18px; font-weight: 600; color: var(--text-color); }
+.card-unit { font-size: 10px; color: var(--text-color-lighter); }
+.abnormal-tag {
+  position: absolute;
+  top: 4px; right: 4px;
+  background: #ff4757;
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+.abnormal-text { color: #fff; font-size: 10px; font-weight: 500; }
+.empty-card {
+  border: 2px dashed var(--border-color-light);
+  opacity: .8;
+}
+.card-desc { font-size: 10px; color: var(--text-color-lighter); }
+
+/* 指示器 */
+.swiper-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+.swiper-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.3);
+  transition: all .3s;
+}
+.swiper-dot.active {
+  background: var(--primary-color);
+  width: 18px;
+  border-radius: 3px;
+}
+
+/* ── 快捷功能 ── */
+.quick-actions { margin-bottom: 15px; }
+.action-grid {
+  background: #fff;
+  border-radius: 8px;
+  padding: 15px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform .2s;
+}
+.action-item:active { transform: scale(.95); }
+.action-icon {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 5px;
+  background: var(--bg-color-light);
+}
+.action-label { font-size: 12px; color: var(--text-color); text-align: center; }
+
+/* ── 健康资讯 ── */
+.health-news { margin-bottom: 15px; }
+.news-list {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+.news-item {
+  display: flex;
+  padding: 15px;
+  border-bottom: 1px solid var(--border-color-light);
+  cursor: pointer;
+  transition: background .2s;
+}
+.news-item:last-child { border-bottom: none; }
+.news-item:active { background: var(--bg-color-hover); }
+.news-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-right: 15px;
+}
+.news-title {
+  font-size: 14px;
+  color: var(--text-color);
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+.news-desc {
+  font-size: 12px;
+  color: var(--text-color-light);
+  margin-bottom: 5px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.news-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.news-time { font-size: 10px; color: var(--text-color-lighter); }
+.news-category {
+  font-size: 10px;
+  color: var(--primary-color);
+  background: rgba(16,185,129,.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.news-views { font-size: 10px; color: var(--text-color-lighter); }
+.news-image {
+  width: 80px; height: 60px;
+  border-radius: 4px;
+  background: var(--bg-color-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.news-image img {
+  width: 100%; height: 100%;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+/* ── 无数据 ── */
+.no-data {
+  padding: 30px;
+  text-align: center;
+}
+.no-data-text { font-size: 12px; color: var(--text-color-lighter); }
+
+/* ── 底部导航栏 ── */
+.footer-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  background: #fff;
+  box-shadow: 0 -2px 8px rgba(0,0,0,.1);
+  z-index: 999;
+  border-top: 1px solid var(--border-color-light);
+  padding-bottom: 8px;
+}
+.footer-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 0;
+  cursor: pointer;
+  transition: all .3s;
+}
+.footer-item:active { opacity: .7; transform: scale(.98); }
+.footer-icon {
+  width: 20px; height: 20px;
+  margin-bottom: 2px;
+  opacity: .8;
+  transition: all .3s;
+  background: var(--text-color-light);
+  border-radius: 4px;
+}
+.footer-item.active .footer-icon {
+  opacity: 1;
+  background: var(--primary-color);
+}
+.footer-label {
+  font-size: 10px;
+  color: var(--text-color-light);
+  transition: all .3s;
+}
+.footer-item.active .footer-label {
+  color: var(--primary-color);
+  font-weight: 500;
+  font-size: 11px;
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- ── 顶部导航栏 ── -->
+  <div class="nav-bar">
+    <div class="status-bar"></div>
+    <div class="nav-content">
+      <span class="nav-title">健康管理</span>
+    </div>
+  </div>
+
+  <!-- ── 内容区域 ── -->
+  <div class="content-wrapper">
+
+    <!-- 欢迎横幅 -->
+    <div class="welcome-banner">
+      <div class="banner-content">
+        <div class="welcome-info">
+          <div class="welcome-title">您好，欢迎回来！</div>
+          <div class="welcome-subtitle">让我们一起关注您的健康</div>
+        </div>
+        <div class="health-icon"><span class="icon">🏥</span></div>
+      </div>
+    </div>
+
+    <!-- 今日健康概览 -->
+    <div class="health-overview">
+      <div class="section-title">
+        <span class="title-text">今日健康概览</span>
+        <span class="more-text" onclick="navigateTo('health-record-list.html')">查看更多 ›</span>
+      </div>
+      <div class="swiper-container" id="healthSwiper">
+        <div class="swiper-wrapper" id="swiperWrapper">
+          <!-- JS动态填充 -->
+        </div>
+      </div>
+      <div class="swiper-dots" id="swiperDots"></div>
+    </div>
+
+    <!-- 快捷功能 -->
+    <div class="quick-actions">
+      <div class="section-title">
+        <span class="title-text">快捷功能</span>
+      </div>
+      <div class="action-grid">
+        <div class="action-item" onclick="navigateTo('health-record-list.html')">
+          <div class="action-icon">📊</div>
+          <span class="action-label">健康记录</span>
+        </div>
+        <div class="action-item" onclick="navigateTo('health-view.html')">
+          <div class="action-icon">📈</div>
+          <span class="action-label">健康视图</span>
+        </div>
+        <div class="action-item" onclick="navigateTo('ai-analyse.html')">
+          <div class="action-icon">🤖</div>
+          <span class="action-label">AI分析</span>
+        </div>
+        <div class="action-item" onclick="navigateTo('diet-record-list.html')">
+          <div class="action-icon">🍎</div>
+          <span class="action-label">饮食记录</span>
+        </div>
+        <div class="action-item" onclick="navigateTo('sport-record-list.html')">
+          <div class="action-icon">🏃‍♂️</div>
+          <span class="action-label">运动记录</span>
+        </div>
+        <div class="action-item" onclick="navigateTo('health-notice-list.html')">
+          <div class="action-icon">⏰</div>
+          <span class="action-label">健康提醒</span>
+        </div>
+        <div class="action-item" onclick="navigateTo('health-article-list.html')">
+          <div class="action-icon">📖</div>
+          <span class="action-label">健康知识</span>
+        </div>
+        <div class="action-item" onclick="navigateTo('recipe-list.html')">
+          <div class="action-icon">🥗</div>
+          <span class="action-label">健康食谱</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 健康资讯 -->
+    <div class="health-news">
+      <div class="section-title">
+        <span class="title-text">健康资讯</span>
+        <span class="more-text" onclick="navigateTo('health-article-list.html')">查看更多 ›</span>
+      </div>
+      <div class="news-list" id="newsList">
+        <!-- JS动态填充 -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── 底部导航栏 ── -->
+  <div class="footer-bar">
+    <div class="footer-item active" onclick="switchTab(0, 'index.html')">
+      <div class="footer-icon" style="background:var(--primary-color)"></div>
+      <span class="footer-label" style="color:var(--primary-color);font-weight:500">首 页</span>
+    </div>
+    <div class="footer-item" onclick="switchTab(1, 'health-indicator-list.html')">
+      <div class="footer-icon"></div>
+      <span class="footer-label">健康指标</span>
+    </div>
+    <div class="footer-item" onclick="switchTab(2, 'user-center.html')">
+      <div class="footer-icon"></div>
+      <span class="footer-label">个人中心</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── 模拟数据 ──
+// 今日健康记录（模拟：体温、体重、心率、血糖、血压等）
+var todayRecords = [
+  { HealthIndicatorDto: { Id:1, Name:'体温', Cover:'' }, RecordValue: '36.5', IsAbnormity: 'N' },
+  { HealthIndicatorDto: { Id:2, Name:'体重', Cover:'' }, RecordValue: '68.2', IsAbnormity: 'N' },
+  { HealthIndicatorDto: { Id:3, Name:'心率', Cover:'' }, RecordValue: '78', IsAbnormity: 'N' },
+  { HealthIndicatorDto: { Id:4, Name:'空腹血糖', Cover:'' }, RecordValue: '7.2', IsAbnormity: 'Y' },
+  { HealthIndicatorDto: { Id:5, Name:'血压收缩压', Cover:'' }, RecordValue: '128', IsAbnormity: 'N' },
+];
+
+// 健康资讯
+var healthArticles = [
+  { Id:1, Title:'春季养生小贴士：如何调理身体迎接春天', Content:'春季阳气生发，是养生的黄金季节。本文为您介绍春季养生的几大要点，包括饮食调节、作息规律、运动建议等，帮助您健康度过春天...', Cover:'', CreationTime:'2026-05-03 09:30:00', HealthArticleTypeDto:{Name:'养生保健'}, ViewCount:1256 },
+  { Id:2, Title:'每天坚持运动30分钟，身体会发生哪些变化？', Content:'研究表明，每天坚持30分钟中等强度运动，可以显著改善心血管健康、增强免疫力、改善睡眠质量...', Cover:'', CreationTime:'2026-05-02 14:20:00', HealthArticleTypeDto:{Name:'运动健身'}, ViewCount:2341 },
+  { Id:3, Title:'健康饮食金字塔：科学搭配每日膳食', Content:'合理的膳食搭配是健康的基础。本文详细解读健康饮食金字塔的每一层，告诉您每天应该如何搭配各类食物...', Cover:'', CreationTime:'2026-05-01 10:00:00', HealthArticleTypeDto:{Name:'饮食营养'}, ViewCount:987 },
+  { Id:4, Title:'高血压患者的日常注意事项', Content:'高血压作为一种常见的慢性病，需要患者在日常生活中多加注意。本文将为您详细介绍高血压患者的饮食、运动、用药等方面的注意事项...', Cover:'', CreationTime:'2026-04-30 16:45:00', HealthArticleTypeDto:{Name:'疾病管理'}, ViewCount:3456 },
+];
+
+// ── 工具函数 ──
+function getUnit(name) {
+  var map = { '体温':'℃','体重':'kg','身高':'cm','心率':'次/分','血压':'mmHg','空腹血糖':'mmol/L','血糖':'mmol/L' };
+  for (var k in map) { if (name && name.indexOf(k) !== -1) return map[k]; }
+  return '';
+}
+
+function formatVal(v) {
+  if (v === null || v === undefined) return '--';
+  return Number(v) % 1 === 0 ? String(v) : Number(v).toFixed(1);
+}
+
+function formatTime(timeStr) {
+  if (!timeStr) return '';
+  var d = new Date(timeStr);
+  var now = new Date();
+  var diff = now - d;
+  var m = Math.floor(diff / 60000);
+  var h = Math.floor(diff / 3600000);
+  var days = Math.floor(diff / 86400000);
+  if (m <= 0) return '刚刚';
+  if (m < 60) return m + '分钟前';
+  if (h < 24) return h + '小时前';
+  if (days < 7) return days + '天前';
+  return (d.getMonth()+1)+'月'+d.getDate()+'日';
+}
+
+function getArticleDesc(content) {
+  if (!content) return '暂无描述';
+  var t = content.replace(/<[^>]*>/g, '');
+  return t.length > 50 ? t.substring(0,50)+'...' : t;
+}
+
+// ── 渲染健康概览 Swiper ──
+var PAGE_SIZE = 4;
+var pages = [];
+for (var i = 0; i < todayRecords.length; i += PAGE_SIZE) {
+  pages.push(todayRecords.slice(i, i + PAGE_SIZE));
+}
+if (pages.length === 0) {
+  pages.push([]); // 至少一页空数据
+}
+
+var wrapper = document.getElementById('swiperWrapper');
+var dotsEl = document.getElementById('swiperDots');
+var currentPage = 0;
+
+function renderSwiper() {
+  wrapper.innerHTML = '';
+  dotsEl.innerHTML = '';
+  pages.forEach(function(page, pi) {
+    var slide = document.createElement('div');
+    slide.className = 'swiper-slide';
+    var grid = document.createElement('div');
+    grid.className = 'overview-grid';
+
+    // 填充卡片
+    for (var j = 0; j < 4; j++) {
+      var record = page[j];
+      var card = document.createElement('div');
+      if (record) {
+        var isAbnormal = record.IsAbnormity === 'Y';
+        card.className = 'overview-card' + (isAbnormal ? ' abnormal' : '');
+        card.onclick = function(){ navigateTo('health-record-list.html'); };
+        var iconHtml = record.HealthIndicatorDto.Cover
+          ? '<img src="'+record.HealthIndicatorDto.Cover+'" style="width:28px;height:28px;border-radius:4px;object-fit:contain">'
+          : '📊';
+        var abnormalHtml = isAbnormal ? '<div class="abnormal-tag"><span class="abnormal-text">异常</span></div>' : '';
+        card.innerHTML = abnormalHtml +
+          '<div class="card-icon">'+iconHtml+'</div>' +
+          '<span class="card-label">'+record.HealthIndicatorDto.Name+'</span>' +
+          '<span class="card-value">'+formatVal(record.RecordValue)+'</span>' +
+          '<span class="card-unit">'+getUnit(record.HealthIndicatorDto.Name)+'</span>';
+      } else {
+        card.className = 'overview-card empty-card';
+        card.onclick = function(){ navigateTo('health-record-list.html'); };
+        card.innerHTML =
+          '<div class="card-icon"><span style="font-size:28px">➕</span></div>' +
+          '<span class="card-label">添加记录</span>' +
+          '<span class="card-desc">点击记录健康数据</span>';
+      }
+      grid.appendChild(card);
+    }
+    slide.appendChild(grid);
+    wrapper.appendChild(slide);
+
+    // 指示点
+    var dot = document.createElement('span');
+    dot.className = 'swiper-dot' + (pi === 0 ? ' active' : '');
+    dot.onclick = (function(idx){ return function(){ goToPage(idx); }; })(pi);
+    dotsEl.appendChild(dot);
+  });
+}
+
+function goToPage(idx) {
+  currentPage = idx;
+  wrapper.style.transform = 'translateX(-' + (idx * 100) + '%)';
+  var dots = dotsEl.querySelectorAll('.swiper-dot');
+  dots.forEach(function(d, i){ d.className = 'swiper-dot' + (i === idx ? ' active' : ''); });
+}
+
+// 触摸滑动支持
+var touchStartX = 0;
+wrapper.addEventListener('touchstart', function(e){ touchStartX = e.touches[0].clientX; });
+wrapper.addEventListener('touchend', function(e){
+  var diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 30) {
+    if (diff > 0 && currentPage < pages.length - 1) goToPage(currentPage + 1);
+    else if (diff < 0 && currentPage > 0) goToPage(currentPage - 1);
+  }
+});
+
+renderSwiper();
+
+// ── 渲染健康资讯列表 ──
+var newsList = document.getElementById('newsList');
+if (healthArticles.length === 0) {
+  newsList.innerHTML = '<div class="no-data"><span class="no-data-text">暂无健康资讯</span></div>';
+} else {
+  healthArticles.forEach(function(article){
+    var item = document.createElement('div');
+    item.className = 'news-item';
+    item.onclick = function(){ navigateTo('health-article-detail.html?id='+article.Id); };
+    var coverHtml = article.Cover
+      ? '<img src="'+article.Cover+'" alt="">'
+      : '<span class="placeholder-icon">📖</span>';
+    item.innerHTML =
+      '<div class="news-content">' +
+        '<span class="news-title">'+article.Title+'</span>' +
+        '<span class="news-desc">'+getArticleDesc(article.Content)+'</span>' +
+        '<div class="news-meta">' +
+          '<span class="news-time">'+formatTime(article.CreationTime)+'</span>' +
+          '<span class="news-category">'+article.HealthArticleTypeDto.Name+'</span>' +
+          '<span class="news-views">'+article.ViewCount+'阅读</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="news-image">'+coverHtml+'</div>';
+    newsList.appendChild(item);
+  });
+}
+
+// ── 导航 ──
+function navigateTo(url) {
+  window.location.href = url;
+}
+function switchTab(idx, url) {
+  navigateTo(url);
+}
+</script>
+</body>
+</html>
