@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>账号管理 - 健康管理后台</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#4CAF50;--primary-light:#81C784;--primary-dark:#388E3C;
+  --sidebar-w:240px;--header-h:60px
+}
+body{font-family:'Microsoft YaHei',sans-serif;background:#f0f2f5;color:#333;font-size:14px}
+a{text-decoration:none;color:inherit}
+
+/* Layout */
+.admin-layout{height:100vh;display:flex;flex-direction:column}
+.header{height:var(--header-h);background:#fff;border-bottom:1px solid #dcdfe6;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-shadow:0 1px 4px rgba(0,21,41,.08);flex-shrink:0}
+.header-left{display:flex;align-items:center}
+.logo{display:flex;align-items:center;gap:15px}
+.logo-img{height:40px;width:40px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:bold}
+.logo-text{display:flex;flex-direction:column}
+.sys-title{font-size:18px;font-weight:600;color:#1a1a1a;line-height:1.2}
+.sys-sub{font-size:12px;color:#666;line-height:1.2}
+.header-right{display:flex;align-items:center}
+.user-info{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 10px;border-radius:6px;transition:background .2s}
+.user-info:hover{background:#f5f7fa}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:16px}
+.user-text{display:flex;flex-direction:column;line-height:1.2}
+.username{font-size:14px;color:#303133;font-weight:500}
+.user-role{font-size:12px;color:#909399}
+.arrow-down{margin-left:4px;color:#909399;transition:transform .3s}
+.dropdown{position:relative}
+.dropdown-menu{display:none;position:absolute;top:100%;right:0;margin-top:8px;background:#fff;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.12);min-width:140px;z-index:100;overflow:hidden}
+.dropdown-menu.show{display:block}
+.dropdown-item{padding:12px 16px;display:flex;align-items:center;gap:8px;font-size:14px;color:#606266;cursor:pointer;transition:background .2s}
+.dropdown-item:hover{background:#f5f7fa;color:var(--primary)}
+.dropdown-item:first-child{border-radius:8px 8px 0 0}
+.dropdown-item:last-child{border-radius:0 0 8px 8px}
+
+/* Main Container */
+.main-container{flex:1;display:flex;overflow:hidden}
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:#fff;box-shadow:2px 0 8px rgba(0,0,0,.08);border-right:1px solid #f0f0f0;position:relative;overflow-y:auto;overflow-x:hidden;flex-shrink:0}
+.sidebar::before{content:'';display:block;height:3px;background:linear-gradient(90deg,#409EFF,#67C23A,#E6A23C,#F56C6C);position:sticky;top:0;z-index:2}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1);border-radius:2px}
+.menu{padding:15px 0}
+
+.menu-item{position:relative;margin:0 8px;border-radius:8px;cursor:pointer;transition:all .3s;overflow:hidden;width:calc(100% - 16px)}
+.menu-item:hover{background:#f8f9fa;transform:translateX(4px)}
+.menu-item.active{background:linear-gradient(135deg,#409EFF,#337ecc);box-shadow:0 4px 12px rgba(64,158,255,.2)}
+.menu-item .menu-content{display:flex;align-items:center;padding:12px 16px;color:#606266;position:relative;z-index:2}
+.menu-item.active .menu-content{color:#fff}
+.menu-icon{font-size:16px;margin-right:12px;width:24px;text-align:center;transition:transform .3s}
+.menu-item:hover .menu-icon{transform:scale(1.1)}
+.menu-text{font-size:14px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Submenu */
+.menu-group{margin-bottom:2px}
+.submenu-header.expanded{background:#f5f7fa}
+.expand-icon{font-size:10px;margin-left:auto;transition:transform .3s;color:#909399;flex-shrink:0}
+.expand-icon.open{transform:rotate(90deg)}
+.menu-item.active .expand-icon{color:#fff}
+
+.submenu-container{display:none;margin-left:16px;border-left:2px solid #e4e7ed;padding:4px 0}
+.submenu-container.show{display:block}
+.submenu-item{display:flex;align-items:center;padding:10px 16px;margin:2px 8px 2px 2px;border-radius:6px;color:#909399;cursor:pointer;transition:all .3s;position:relative}
+.submenu-item::before{content:'';position:absolute;left:-20px;top:50%;transform:translateY(-50%);width:6px;height:6px;background:#c0c4cc;border-radius:50%;transition:all .3s}
+.submenu-item:hover{background:#f0f2f5;color:#606266;transform:translateX(4px)}
+.submenu-item:hover::before{background:#409EFF;transform:translateY(-50%) scale(1.2)}
+.submenu-item.active{background:linear-gradient(135deg,rgba(64,158,255,.1),rgba(51,126,204,.1));color:#409EFF;font-weight:600}
+.submenu-item.active::before{background:#409EFF;transform:translateY(-50%) scale(1.3);box-shadow:0 0 8px rgba(64,158,255,.4)}
+.submenu-icon{font-size:13px;margin-right:10px;width:18px;text-align:center}
+.submenu-text{font-size:13px}
+
+/* Main Content */
+.main-content{flex:1;padding:20px;overflow-y:auto;background:#f0f2f5}
+.main-content::-webkit-scrollbar{width:6px}
+.main-content::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+
+.breadcrumb{display:flex;align-items:center;padding:10px 14px;background:#fff;border-radius:6px;margin-bottom:20px;font-size:14px;color:#666;gap:8px}
+.breadcrumb span{color:#303133}
+.breadcrumb .sep{color:#c0c4cc}
+.breadcrumb .back-link{margin-left:auto;cursor:pointer;color:#409EFF;display:flex;align-items:center;gap:4px;font-size:13px}
+.breadcrumb .back-link:hover{color:#66b1ff}
+
+/* Cards & Forms */
+.card{background:#fff;border-radius:8px;padding:20px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.card-header{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap}
+.btn{padding:8px 16px;border-radius:6px;font-size:14px;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:5px;transition:all .2s;font-family:inherit}
+.btn-primary{background:#409EFF;color:#fff}
+.btn-primary:hover{background:#66b1ff}
+.btn-warning{background:#e6a23c;color:#fff}
+.btn-warning:hover{background:#ebb563}
+.btn-danger{background:#F56C6C;color:#fff}
+.btn-danger:hover{background:#f78989}
+.btn-success{background:#67C23A;color:#fff}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:4px}
+
+.search-form{display:flex;flex-wrap:wrap;gap:15px;align-items:flex-end}
+.search-item{display:flex;flex-direction:column;gap:6px}
+.search-item label{font-size:13px;color:#606266;font-weight:500}
+.search-input{padding:8px 12px;border:1px solid #dcdfe6;border-radius:6px;font-size:13px;outline:none;min-width:180px;transition:border .2s}
+.search-input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(76,175,80,.15)}
+.search-select{padding:8px 12px;border:1px solid #dcdfe6;border-radius:6px;font-size:13px;outline:none;min-width:150px;background:#fff}
+
+/* Table */
+.data-table{width:100%;border-collapse:collapse;font-size:14px}
+.data-table th{background:#f5f7fa;padding:12px 10px;text-align:left;font-weight:600;color:#606266;border-bottom:1px solid #ebeef5;white-space:nowrap}
+.data-table td{padding:12px 10px;border-bottom:1px solid #ebeef5;color:#303133}
+.data-table tr:hover td{background:#f5f7fa}
+.data-table .avatar{width:40px;height:40px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:18px}
+.data-table .phone{color:#409EFF}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:16px;font-size:13px;color:#666}
+.pagination .page-btn{padding:6px 12px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;cursor:pointer;transition:all .2s}
+.pagination .page-btn:hover{color:var(--primary);border-color:var(--primary)}
+.pagination .page-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.pagination .page-info{margin:0 8px}
+
+/* Dialog overlay */
+.dialog-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:2000;align-items:center;justify-content:center}
+.dialog-overlay.show{display:flex}
+.dialog{background:#fff;border-radius:12px;width:600px;max-height:80vh;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.2)}
+.dialog-header{padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:600}
+.dialog-close{cursor:pointer;font-size:18px;color:#999;padding:4px}
+.dialog-body{padding:20px;max-height:55vh;overflow-y:auto}
+.dialog-body::-webkit-scrollbar{width:5px}
+.dialog-body::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px}
+.dialog-footer{padding:14px 20px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:10px}
+
+.form-group-d{margin-bottom:20px}
+.form-label-d{display:block;font-size:13px;color:#606266;font-weight:500;margin-bottom:6px}
+.form-input-d{width:100%;padding:9px 12px;border:1px solid #dcdfe6;border-radius:6px;font-size:13px;outline:none;transition:border .2s}
+.form-input-d:focus{border-color:var(--primary)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:0 15px}
+.upload-box{width:80px;height:80px;border:2px dashed #ddd;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:24px;cursor:pointer}
+
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#fff;color:#333;padding:12px 24px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.15);font-size:14px;z-index:3000;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.toast.success{border-left:3px solid #67C23A;color:#67C23A}
+.toast.error{border-left:3px solid #F56C6C;color:#F56C6C}
+</style>
+</head>
+<body>
+<div class="admin-layout">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">
+        <div class="logo-img">🏥</div>
+        <div class="logo-text">
+          <span class="sys-title">个人健康小程序管理端</span>
+          <span class="sys-sub">SpringBoot4 + Vue3</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="dropdown">
+        <div class="user-info" onclick="toggleDropdown()">
+          <div class="user-avatar">👤</div>
+          <div class="user-text">
+            <span class="username">admin</span>
+            <span class="user-role">管理员</span>
+          </div>
+          <span class="arrow-down">▼</span>
+        </div>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <div class="dropdown-item" onclick="navTo('admin-user-person.html')">👤 个人信息</div>
+          <div class="dropdown-item" onclick="navTo('admin-password-edit.html')">🔒 修改密码</div>
+          <div class="dropdown-item" onclick="doLogout()">🚪 退出登录</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <div class="main-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <nav class="menu">
+        <!-- 控制台 -->
+        <div class="menu-item" onclick="navTo('admin-user-list.html')">
+          <div class="menu-content"><span class="menu-icon">🏠</span><span class="menu-text">控制台</span></div>
+        </div>
+
+        <!-- 用户管理 -->
+        <div class="menu-group">
+          <div class="menu-item submenu-header expanded" onclick="toggleSub('userMgmt',this)">
+            <div class="menu-content"><span class="menu-icon">👥</span><span class="menu-text">用户管理</span><span class="expand-icon open">▶</span></div>
+          </div>
+          <div class="submenu-container show" id="sub-userMgmt">
+            <div class="submenu-item active" onclick="navTo('admin-user-list.html')"><span class="submenu-icon">👤</span><span class="submenu-text">账号管理</span></div>
+          </div>
+        </div>
+
+        <!-- 饮食管理 -->
+        <div class="menu-group">
+          <div class="menu-item submenu-header" onclick="toggleSub('dietMgmt',this)">
+            <div class="menu-content"><span class="menu-icon">🍎</span><span class="menu-text">饮食管理</span><span class="expand-icon">▶</span></div>
+          </div>
+          <div class="submenu-container" id="sub-dietMgmt">
+            <div class="submenu-item" onclick="navTo('admin-food-list.html')"><span class="submenu-icon">🥗</span><span class="submenu-text">食物管理</span></div>
+            <div class="submenu-item" onclick="navTo('admin-food-type-list.html')"><span class="submenu-icon">📋</span><span class="submenu-text">食物分类</span></div>
+            <div class="submenu-item" onclick="navTo('admin-food-unit-list.html')"><span class="submenu-icon">⚖️</span><span class="submenu-text">食物单位</span></div>
+            <div class="submenu-item" onclick="navTo('admin-recipe-list.html')"><span class="submenu-icon">📖</span><span class="submenu-text">食谱管理</span></div>
+            <div class="submenu-item" onclick="navTo('admin-diet-record-list.html')"><span class="submenu-icon">📊</span><span class="submenu-text">饮食记录</span></div>
+          </div>
+        </div>
+
+        <!-- 运动管理 -->
+        <div class="menu-group">
+          <div class="menu-item submenu-header" onclick="toggleSub('sportMgmt',this)">
+            <div class="menu-content"><span class="menu-icon">🏃</span><span class="menu-text">运动管理</span><span class="expand-icon">▶</span></div>
+          </div>
+          <div class="submenu-container" id="sub-sportMgmt">
+            <div class="submenu-item" onclick="navTo('admin-sport-list.html')"><span class="submenu-icon">🏋️</span><span class="submenu-text">运动参考</span></div>
+            <div class="submenu-item" onclick="navTo('admin-sport-unit-list.html')"><span class="submenu-icon">📏</span><span class="submenu-text">运动单位</span></div>
+            <div class="submenu-item" onclick="navTo('admin-sport-record-list.html')"><span class="submenu-icon">📈</span><span class="submenu-text">运动记录</span></div>
+          </div>
+        </div>
+
+        <!-- 健康管理 -->
+        <div class="menu-group">
+          <div class="menu-item submenu-header" onclick="toggleSub('healthMgmt',this)">
+            <div class="menu-content"><span class="menu-icon">💚</span><span class="menu-text">健康管理</span><span class="expand-icon">▶</span></div>
+          </div>
+          <div class="submenu-container" id="sub-healthMgmt">
+            <div class="submenu-item" onclick="navTo('admin-health-indicator-list.html')"><span class="submenu-icon">🩺</span><span class="submenu-text">健康指标</span></div>
+            <div class="submenu-item" onclick="navTo('admin-health-indicator-type-list.html')"><span class="submenu-icon">📑</span><span class="submenu-text">指标分类</span></div>
+            <div class="submenu-item" onclick="navTo('admin-health-indicator-record-list.html')"><span class="submenu-icon">📋</span><span class="submenu-text">指标记录</span></div>
+            <div class="submenu-item" onclick="navTo('admin-health-notice-list.html')"><span class="submenu-icon">⏰</span><span class="submenu-text">健康提醒</span></div>
+          </div>
+        </div>
+
+        <!-- 知识管理 -->
+        <div class="menu-group">
+          <div class="menu-item submenu-header" onclick="toggleSub('knowledgeMgmt',this)">
+            <div class="menu-content"><span class="menu-icon">📚</span><span class="menu-text">知识管理</span><span class="expand-icon">▶</span></div>
+          </div>
+          <div class="submenu-container" id="sub-knowledgeMgmt">
+            <div class="submenu-item" onclick="navTo('admin-health-article-list.html')"><span class="submenu-icon">📄</span><span class="submenu-text">健康知识</span></div>
+            <div class="submenu-item" onclick="navTo('admin-health-article-type-list.html')"><span class="submenu-icon">🏷️</span><span class="submenu-text">知识分类</span></div>
+          </div>
+        </div>
+
+        <!-- 互动管理 -->
+        <div class="menu-group">
+          <div class="menu-item submenu-header" onclick="toggleSub('interactMgmt',this)">
+            <div class="menu-content"><span class="menu-icon">💖</span><span class="menu-text">互动管理</span><span class="expand-icon">▶</span></div>
+          </div>
+          <div class="submenu-container" id="sub-interactMgmt">
+            <div class="submenu-item" onclick="navTo('admin-collect-record-list.html')"><span class="submenu-icon">⭐</span><span class="submenu-text">收藏记录</span></div>
+            <div class="submenu-item" onclick="navTo('admin-like-record-list.html')"><span class="submenu-icon">👍</span><span class="submenu-text">点赞记录</span></div>
+          </div>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="breadcrumb">
+        <a href="admin-user-list.html">控制台</a><span class="sep">/</span><span>账号管理</span>
+        <span class="back-link" onclick="history.back()">← 返回</span>
+      </div>
+
+      <!-- Search card -->
+      <div class="card">
+        <div class="card-header">
+          <button class="btn btn-primary" onclick="doSearch()">🔍 查询</button>
+          <button class="btn btn-warning" onclick="resetSearch()">🔄 清空条件</button>
+        </div>
+        <div class="search-form">
+          <div class="search-item"><label>账号</label><input type="text" class="search-input" id="sUserName" placeholder="请输入账号"></div>
+          <div class="search-item"><label>姓名</label><input type="text" class="search-input" id="sName" placeholder="请输入姓名"></div>
+          <div class="search-item"><label>邮箱</label><input type="text" class="search-input" id="sEmail" placeholder="请输入邮箱"></div>
+          <div class="search-item"><label>手机号码</label><input type="text" class="search-input" id="sPhone" placeholder="请输入手机号码"></div>
+          <div class="search-item"><label>角色</label>
+            <select class="search-select" id="sRole"><option value="">全部</option><option value="1">管理员</option><option value="2">普通用户</option><option value="3">医生</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table card -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-success" onclick="showAddDialog()">✏️ 新增</button>
+            <button class="btn btn-primary" onclick="showToast('导出功能','success')">📥 导出</button>
+          </div>
+          <span style="font-size:13px;color:#999">共 <b id="totalCount">12</b> 条</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>账号</th><th>邮箱</th><th>姓名</th><th>头像</th><th>手机号</th><th>出生年月</th><th>所属角色</th><th style="width:260px">操作</th></tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Dialog -->
+<div class="dialog-overlay" id="dialogOverlay" onclick="closeDialog()">
+  <div class="dialog" onclick="event.stopPropagation()">
+    <div class="dialog-header">
+      <span id="dialogTitle">添加账号</span>
+      <span class="dialog-close" onclick="closeDialog()">✕</span>
+    </div>
+    <div class="dialog-body">
+      <div class="form-row">
+        <div class="form-group-d"><label class="form-label-d">账号 *</label><input type="text" class="form-input-d" id="fUserName" placeholder="请输入账号"></div>
+        <div class="form-group-d" id="pwdGroup"><label class="form-label-d">密码 *</label><input type="password" class="form-input-d" id="fPassword" placeholder="请输入密码"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group-d"><label class="form-label-d">角色 *</label>
+          <select class="form-input-d" id="fRole"><option value="1">管理员</option><option value="2">普通用户</option><option value="3">医生</option></select>
+        </div>
+        <div class="form-group-d"><label class="form-label-d">邮箱 *</label><input type="email" class="form-input-d" id="fEmail" placeholder="请输入邮箱"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group-d"><label class="form-label-d">手机号码 *</label><input type="tel" class="form-input-d" id="fPhone" placeholder="请输入手机号码"></div>
+        <div class="form-group-d"><label class="form-label-d">姓名 *</label><input type="text" class="form-input-d" id="fName" placeholder="请输入姓名"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group-d"><label class="form-label-d">出生时间 *</label><input type="date" class="form-input-d" id="fBirth"></div>
+        <div class="form-group-d"><label class="form-label-d">头像</label><div class="upload-box" onclick="showToast('模拟上传','success')">📷</div></div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-primary" onclick="doSave()">确 定</button>
+      <button class="btn" style="background:#f0f0f0;color:#666" onclick="closeDialog()">取 消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var users = [
+  {Id:1,UserName:'admin',Email:'admin@health.com',Name:'系统管理员',ImageUrls:'',PhoneNumber:'13800000001',Birth:'1990-01-01',RoleTypeFormat:'管理员'},
+  {Id:2,UserName:'zhangsan',Email:'zhang@health.com',Name:'张三',ImageUrls:'',PhoneNumber:'13800000002',Birth:'1992-05-15',RoleTypeFormat:'普通用户'},
+  {Id:3,UserName:'lisi',Email:'li@health.com',Name:'李四',ImageUrls:'',PhoneNumber:'13800000003',Birth:'1988-08-20',RoleTypeFormat:'医生'},
+  {Id:4,UserName:'wangwu',Email:'wang@health.com',Name:'王五',ImageUrls:'',PhoneNumber:'13800000004',Birth:'1995-03-10',RoleTypeFormat:'普通用户'},
+  {Id:5,UserName:'zhaoliu',Email:'zhao@health.com',Name:'赵六',ImageUrls:'',PhoneNumber:'13800000005',Birth:'1993-11-25',RoleTypeFormat:'普通用户'},
+  {Id:6,UserName:'sunqi',Email:'sun@health.com',Name:'孙七',ImageUrls:'',PhoneNumber:'13800000006',Birth:'1991-07-08',RoleTypeFormat:'医生'},
+];
+var pageSize=5,currentPage=1,editingId=null;
+
+function formatDate(s){return s?new Date(s).toLocaleDateString('zh-CN'):'';}
+
+function renderTable(){
+  var tbody=document.getElementById('tableBody'),h='';
+  var start=(currentPage-1)*pageSize,end=Math.min(start+pageSize,users.length);
+  for(var i=start;i<end;i++){
+    var u=users[i];
+    h+='<tr>';
+    h+='<td>'+u.UserName+'</td><td>'+u.Email+'</td><td>'+u.Name+'</td>';
+    h+='<td><div class="avatar">'+(u.ImageUrls?'🖼️':(u.Name?u.Name.charAt(0):'👤'))+'</div></td>';
+    h+='<td class="phone">'+u.PhoneNumber+'</td><td>'+formatDate(u.Birth)+'</td><td>'+u.RoleTypeFormat+'</td>';
+    h+='<td style="white-space:nowrap">';
+    h+='<button class="btn btn-primary btn-sm" onclick="showEditDialog('+u.Id+')" style="margin-right:4px">✏️ 修改</button>';
+    h+='<button class="btn btn-warning btn-sm" onclick="resetPwd('+u.Id+')" style="margin-right:4px">🔄 重置密码</button>';
+    h+='<button class="btn btn-danger btn-sm" onclick="delUser('+u.Id+')">🗑️ 删除</button>';
+    h+='</td></tr>';
+  }
+  tbody.innerHTML=h||'<tr><td colspan="8" style="text-align:center;padding:40px;color:#999">暂无数据</td></tr>';
+  document.getElementById('totalCount').textContent=users.length;
+  renderPagination();
+}
+
+function renderPagination(){
+  var total=Math.ceil(users.length/pageSize),el=document.getElementById('pagination'),h='';
+  h+='<button class="page-btn" onclick="goPage('+(currentPage-1)+')" '+(currentPage===1?'disabled':'')+'>‹</button>';
+  for(var i=1;i<=total;i++){
+    h+='<button class="page-btn'+(i===currentPage?' active':'')+'" onclick="goPage('+i+')">'+i+'</button>';
+  }
+  h+='<button class="page-btn" onclick="goPage('+(currentPage+1)+')" '+(currentPage===total?'disabled':'')+'>›</button>';
+  h+='<span class="page-info">共 '+total+' 页</span>';
+  el.innerHTML=h;
+}
+
+function goPage(p){if(p>=1&&p<=Math.ceil(users.length/pageSize)){currentPage=p;renderTable();}}
+
+function showAddDialog(){
+  editingId=null;
+  document.getElementById('dialogTitle').textContent='添加账号';
+  document.getElementById('pwdGroup').style.display='block';
+  ['fUserName','fPassword','fEmail','fPhone','fName','fBirth'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('fRole').value='2';
+  document.getElementById('dialogOverlay').classList.add('show');
+}
+
+function showEditDialog(id){
+  var u=users.find(function(x){return x.Id===id;});
+  if(!u)return;
+  editingId=id;
+  document.getElementById('dialogTitle').textContent='修改账号';
+  document.getElementById('pwdGroup').style.display='none';
+  document.getElementById('fUserName').value=u.UserName;
+  document.getElementById('fEmail').value=u.Email;
+  document.getElementById('fName').value=u.Name;
+  document.getElementById('fPhone').value=u.PhoneNumber;
+  document.getElementById('fBirth').value=u.Birth||'';
+  document.getElementById('fRole').value=u.RoleTypeFormat==='管理员'?'1':(u.RoleTypeFormat==='医生'?'3':'2');
+  document.getElementById('dialogOverlay').classList.add('show');
+}
+
+function closeDialog(){document.getElementById('dialogOverlay').classList.remove('show');}
+
+function doSave(){
+  var data={
+    UserName:document.getElementById('fUserName').value.trim(),
+    Email:document.getElementById('fEmail').value.trim(),
+    Name:document.getElementById('fName').value.trim(),
+    PhoneNumber:document.getElementById('fPhone').value.trim(),
+    Birth:document.getElementById('fBirth').value,
+    RoleTypeFormat:document.getElementById('fRole').value==='1'?'管理员':(document.getElementById('fRole').value==='3'?'医生':'普通用户'),
+  };
+  if(!data.UserName||!data.Email||!data.Name||!data.PhoneNumber){showToast('请填写必填项','error');return;}
+  if(editingId){
+    var u=users.find(function(x){return x.Id===editingId;});
+    if(u){Object.assign(u,data);}
+  } else {
+    var pwd=document.getElementById('fPassword').value.trim();
+    if(!pwd){showToast('请输入密码','error');return;}
+    data.Id=Math.max.apply(null,users.map(function(x){return x.Id;}))+1;
+    data.ImageUrls='';
+    users.unshift(data);
+  }
+  closeDialog();
+  currentPage=1;
+  renderTable();
+  showToast('操作成功','success');
+}
+
+function resetPwd(id){
+  if(confirm('确认重置该账号密码为账号吗？')){
+    showToast('重置密码成功','success');
+  }
+}
+
+function delUser(id){
+  if(confirm('确认删除该账号吗？')){
+    users=users.filter(function(x){return x.Id!==id;});
+    if(currentPage>Math.ceil(users.length/pageSize)) currentPage=Math.max(1,Math.ceil(users.length/pageSize));
+    renderTable();
+    showToast('删除成功','success');
+  }
+}
+
+function doSearch(){renderTable();showToast('查询完成','success');}
+function resetSearch(){['sUserName','sName','sEmail','sPhone'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('sRole').value='';renderTable();}
+
+function toggleSub(id,el){
+  var sub=document.getElementById('sub-'+id);
+  var icon=el.querySelector('.expand-icon');
+  var isVisible=sub.classList.contains('show');
+  sub.classList.toggle('show');
+  icon.classList.toggle('open');
+  el.classList.toggle('expanded');
+}
+
+function toggleDropdown(){
+  document.getElementById('dropdownMenu').classList.toggle('show');
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.dropdown')) document.getElementById('dropdownMenu').classList.remove('show');
+});
+
+function doLogout(){if(confirm('确定退出登录吗？')){window.location.href='admin-login.html';}}
+function showToast(msg,type){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+(type||'success')+' show';
+  setTimeout(function(){t.classList.remove('show');},2000);
+}
+function navTo(url){window.location.href=url;}
+
+renderTable();
+</script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><title>食物管理 - 后台</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft YaHei',sans-serif;background:#f0f2f5;color:#333;font-size:14px}
+a{text-decoration:none;color:inherit}
+.admin-layout{height:100vh;display:flex;flex-direction:column}
+.header{height:60px;background:#fff;border-bottom:1px solid #dcdfe6;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-shadow:0 1px 4px rgba(0,21,41,.08);flex-shrink:0}
+.header-l{display:flex;align-items:center;gap:15px}
+.logo{width:40px;height:40px;background:#4CAF50;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:bold}
+.sys-title{font-size:18px;font-weight:600;color:#1a1a1a}.sys-sub{font-size:12px;color:#666;display:block}
+.header-r{display:flex;align-items:center}
+.user-box{display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 10px;border-radius:6px;transition:background .2s}
+.user-box:hover{background:#f5f7fa}
+.user-av{width:32px;height:32px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;color:#4CAF50;font-size:16px}
+.uname{font-size:14px;color:#303133;font-weight:500}.urole{font-size:12px;color:#909399;display:block}
+.dropdown{position:relative}
+.drop-menu{display:none;position:absolute;top:100%;right:0;margin-top:8px;background:#fff;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.12);min-width:140px;z-index:100;overflow:hidden}
+.drop-menu.show{display:block}
+.drop-item{padding:12px 16px;display:flex;align-items:center;gap:8px;font-size:14px;color:#606266;cursor:pointer}
+.drop-item:hover{background:#f5f7fa;color:#4CAF50}
+.main-container{flex:1;display:flex;overflow:hidden}
+.sidebar{width:240px;min-width:240px;background:#fff;box-shadow:2px 0 8px rgba(0,0,0,.08);border-right:1px solid #f0f0f0;overflow-y:auto;flex-shrink:0}
+.sidebar::before{content:'';display:block;height:3px;background:linear-gradient(90deg,#409EFF,#67C23A,#E6A23C,#F56C6C);position:sticky;top:0;z-index:2}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1);border-radius:2px}
+.menu{padding:15px 0}
+.m-item{position:relative;margin:0 8px;border-radius:8px;cursor:pointer;transition:all .3s;width:calc(100% - 16px)}
+.m-item:hover{background:#f8f9fa;transform:translateX(4px)}
+.m-item.active{background:linear-gradient(135deg,#409EFF,#337ecc);box-shadow:0 4px 12px rgba(64,158,255,.2)}
+.m-content{display:flex;align-items:center;padding:12px 16px;color:#606266}
+.m-item.active .m-content{color:#fff}
+.m-icon{font-size:16px;margin-right:12px;width:24px;text-align:center}
+.m-text{font-size:14px;font-weight:500;flex:1}
+.m-expand{font-size:10px;margin-left:auto;transition:transform .3s;color:#909399}
+.m-expand.open{transform:rotate(90deg)}
+.m-item.active .m-expand{color:#fff}
+.m-group{margin-bottom:2px}
+.m-sub-h.expanded{background:#f5f7fa}
+.sub-container{display:none;margin-left:16px;border-left:2px solid #e4e7ed;padding:4px 0}
+.sub-container.show{display:block}
+.sub-item{display:flex;align-items:center;padding:10px 16px;margin:2px 8px 2px 2px;border-radius:6px;color:#909399;cursor:pointer;transition:all .3s}
+.sub-item:hover{background:#f0f2f5;color:#606266;transform:translateX(4px)}
+.sub-item.active{background:linear-gradient(135deg,rgba(64,158,255,.1),rgba(51,126,204,.1));color:#409EFF;font-weight:600}
+.sub-icon{font-size:13px;margin-right:10px;width:18px;text-align:center}
+.sub-text{font-size:13px}
+.main-content{flex:1;padding:20px;overflow-y:auto;background:#f0f2f5}
+.breadcrumb{display:flex;align-items:center;padding:10px 14px;background:#fff;border-radius:6px;margin-bottom:20px;font-size:14px;color:#666;gap:8px}
+.breadcrumb span{color:#303133}.breadcrumb .sep{color:#c0c4cc}
+.back-link{margin-left:auto;cursor:pointer;color:#409EFF;font-size:13px}
+.card{background:#fff;border-radius:8px;padding:20px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.card-h{display:flex;gap:10px;margin-bottom:15px}
+.btn{padding:8px 16px;border-radius:6px;font-size:14px;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:5px;font-family:inherit}
+.btn-p{background:#409EFF;color:#fff}.btn-p:hover{background:#66b1ff}
+.btn-w{background:#e6a23c;color:#fff}.btn-s{background:#67C23A;color:#fff}.btn-d{background:#F56C6C;color:#fff}
+.btn-sm{padding:5px 10px;font-size:12px}
+.s-form{display:flex;flex-wrap:wrap;gap:15px;align-items:flex-end}
+.s-item{display:flex;flex-direction:column;gap:6px}
+.s-item label{font-size:13px;color:#606266;font-weight:500}
+.s-input{padding:8px 12px;border:1px solid #dcdfe6;border-radius:6px;font-size:13px;outline:none;min-width:180px}
+.s-input:focus{border-color:#4CAF50;box-shadow:0 0 0 2px rgba(76,175,80,.15)}
+.s-sel{padding:8px 12px;border:1px solid #dcdfe6;border-radius:6px;font-size:13px;outline:none;min-width:150px;background:#fff}
+.tb{width:100%;border-collapse:collapse;font-size:14px}
+.tb th{background:#f5f7fa;padding:12px 10px;text-align:left;font-weight:600;color:#606266;border-bottom:1px solid #ebeef5}
+.tb td{padding:12px 10px;border-bottom:1px solid #ebeef5;color:#303133}
+.tb tr:hover td{background:#f5f7fa}
+.pg{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:16px;font-size:13px;color:#666}
+.pg-btn{padding:6px 12px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;cursor:pointer}
+.pg-btn:hover{color:#4CAF50;border-color:#4CAF50}
+.pg-btn.active{background:#4CAF50;color:#fff;border-color:#4CAF50}
+.dlg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:2000;align-items:center;justify-content:center}
+.dlg.show{display:flex}
+.dlg-card{background:#fff;border-radius:12px;width:600px;max-height:80vh;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.2)}
+.dlg-head{padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:600}
+.dlg-close{cursor:pointer;font-size:18px;color:#999}
+.dlg-body{padding:20px;max-height:55vh;overflow-y:auto}
+.dlg-footer{padding:14px 20px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:10px}
+.fg{margin-bottom:16px}.flbl{display:block;font-size:13px;color:#606266;font-weight:500;margin-bottom:6px}
+.finp{width:100%;padding:9px 12px;border:1px solid #dcdfe6;border-radius:6px;font-size:13px;outline:none;transition:border .2s}
+.finp:focus{border-color:#4CAF50}.frow{display:grid;grid-template-columns:1fr 1fr;gap:0 15px}
+.up-box{width:80px;height:80px;border:2px dashed #ddd;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:24px;cursor:pointer}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.15);font-size:14px;z-index:3000;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}.toast.s{border-left:3px solid #67C23A;color:#67C23A}.toast.e{border-left:3px solid #F56C6C;color:#F56C6C}
+</style>
+</head>
+<body>
+<div class="admin-layout">
+  <header class="header">
+    <div class="header-l"><div class="logo">🏥</div><div><span class="sys-title">个人健康小程序管理端</span><span class="sys-sub">SpringBoot4 + Vue3</span></div></div>
+    <div class="header-r"><div class="dropdown"><div class="user-box" onclick="document.getElementById('dm').classList.toggle('show')"><div class="user-av">👤</div><div><span class="uname">admin</span><span class="urole">管理员</span></div><span>▼</span></div><div class="drop-menu" id="dm"><div class="drop-item" onclick="navTo('admin-user-person.html')">👤 个人信息</div><div class="drop-item" onclick="navTo('admin-password-edit.html')">🔒 修改密码</div><div class="drop-item" onclick="doLogout()">🚪 退出登录</div></div></div></div>
+  </header>
+  <div class="main-container">
+    <aside class="sidebar"><nav class="menu" id="sidebarNav"></nav></aside>
+    <main class="main-content">
+      <div class="breadcrumb"><a href="admin-user-list.html">控制台</a><span class="sep">/</span><span>食物管理</span><span class="back-link" onclick="history.back()">← 返回</span></div>
+      <div class="card">
+        <div class="card-h"><button class="btn btn-p" onclick="doSearch()">🔍 查询</button><button class="btn btn-w" onclick="resetSearch()">🔄 清空条件</button></div>
+        <div class="s-form">
+          <div class="s-item"><label>食物名称</label><input type="text" class="s-input" id="sName" placeholder="请输入食物名称"></div>
+          <div class="s-item"><label>食物类型</label><select class="s-sel" id="sType"><option value="">全部</option><option>主食</option><option>肉类</option><option>蔬菜</option><option>水果</option></select></div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px"><div><button class="btn btn-s" onclick="showAdd()">✏️ 新增</button></div><span style="font-size:13px;color:#999">共 <b id="tc">6</b> 条</span></div>
+        <table class="tb"><thead><tr><th>食物名称</th><th>分类</th><th>封面</th><th>热量(kcal/g)</th><th>蛋白质(g)</th><th>碳水(g)</th><th>脂肪(g)</th><th style="width:160px">操作</th></tr></thead><tbody id="tbBody"></tbody></table>
+        <div class="pg" id="pgBar"></div>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="dlg" id="dlg" onclick="closeDlg()"><div class="dlg-card" onclick="event.stopPropagation()"><div class="dlg-head"><span id="dTitle">添加食物</span><span class="dlg-close" onclick="closeDlg()">✕</span></div><div class="dlg-body"><div class="frow"><div class="fg"><label class="flbl">食物名称 *</label><input type="text" class="finp" id="fName"></div><div class="fg"><label class="flbl">食物类型 *</label><select class="finp" id="fType"><option>主食</option><option>肉类</option><option>蔬菜</option><option>水果</option></select></div></div><div class="frow"><div class="fg"><label class="flbl">热量(kcal/g) *</label><input type="number" class="finp" id="fCal" step="0.01"></div><div class="fg"><label class="flbl">蛋白质(g) *</label><input type="number" class="finp" id="fProt" step="0.01"></div></div><div class="frow"><div class="fg"><label class="flbl">碳水(g) *</label><input type="number" class="finp" id="fCarbs" step="0.01"></div><div class="fg"><label class="flbl">脂肪(g) *</label><input type="number" class="finp" id="fFat" step="0.01"></div></div><div class="fg"><label class="flbl">封面</label><div class="up-box" onclick="showT('模拟上传','s')">📷</div></div></div><div class="dlg-footer"><button class="btn btn-p" onclick="doSave()">确 定</button><button class="btn" style="background:#f0f0f0;color:#666" onclick="closeDlg()">取 消</button></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+var users=[],pageSize=5,cp=1,eid=null;
+users=[
+  {Id:1,cols:['米饭','主食','🍚','1.16','0.03','0.26','0.003']},
+  {Id:2,cols:['全麦面包','主食','🍞','2.5','0.09','0.43','0.04']},
+  {Id:3,cols:['鸡胸肉','肉类','🍗','1.65','0.31','0','0.036']},
+  {Id:4,cols:['三文鱼','肉类','🐟','2.08','0.2','0','0.13']},
+  {Id:5,cols:['西兰花','蔬菜','🥦','0.34','0.03','0.07','0.004']},
+  {Id:6,cols:['苹果','水果','🍎','0.52','0.003','0.14','0.002']},
+];
+function rt(){var b=document.getElementById('tbBody'),h='',s=(cp-1)*pageSize,e=Math.min(s+pageSize,users.length);for(var i=s;i<e;i++){var u=users[i];h+='<tr>';u.cols.forEach(function(c){h+='<td>'+c+'</td>'});h+='<td><button class="btn btn-p btn-sm" onclick="showEdit('+u.Id+')" style="margin-right:4px">✏️ 修改</button><button class="btn btn-d btn-sm" onclick="del('+u.Id+')">🗑️ 删除</button></td></tr>'}b.innerHTML=h||'<tr><td colspan="8" style="text-align:center;padding:40px;color:#999">暂无数据</td></tr>';document.getElementById('tc').textContent=users.length;rp()}
+function rp(){var t=Math.ceil(users.length/pageSize),el=document.getElementById('pgBar'),h='';h+='<button class="pg-btn" onclick="gp('+(cp-1)+')" '+(cp===1?'disabled':'')+'>‹</button>';for(var i=1;i<=t;i++)h+='<button class="pg-btn'+(i===cp?' active':'')+'" onclick="gp('+i+')">'+i+'</button>';h+='<button class="pg-btn" onclick="gp('+(cp+1)+')" '+(cp===t?'disabled':'')+'>›</button>';h+='<span style="margin-left:8px">共 '+t+' 页</span>';el.innerHTML=h}
+function gp(p){if(p>=1&&p<=Math.ceil(users.length/pageSize)){cp=p;rt()}}
+function showAdd(){eid=null;document.getElementById('dTitle').textContent='添加食物';['fName','fCal','fProt','fCarbs','fFat'].forEach(function(id){document.getElementById(id).value=''});document.getElementById('dlg').classList.add('show')}
+function showEdit(id){var u=users.find(function(x){return x.Id===id});if(!u)return;eid=id;document.getElementById('dTitle').textContent='修改食物';document.getElementById('fName').value=u.cols[0];document.getElementById('fType').value=u.cols[1];document.getElementById('fCal').value=u.cols[3];document.getElementById('fProt').value=u.cols[4];document.getElementById('fCarbs').value=u.cols[5];document.getElementById('fFat').value=u.cols[6];document.getElementById('dlg').classList.add('show')}
+function closeDlg(){document.getElementById('dlg').classList.remove('show')}
+function doSave(){var n=document.getElementById('fName').value.trim();if(!n){showT('请填写必填项','e');return}if(eid){var u=users.find(function(x){return x.Id===eid});if(u){u.cols=[n,document.getElementById('fType').value,u.cols[2]||'🍽️',document.getElementById('fCal').value||'0',document.getElementById('fProt').value||'0',document.getElementById('fCarbs').value||'0',document.getElementById('fFat').value||'0']}}else{users.unshift({Id:Math.max.apply(null,users.map(function(x){return x.Id}))+1,cols:[n,document.getElementById('fType').value,'🍽️',document.getElementById('fCal').value||'0',document.getElementById('fProt').value||'0',document.getElementById('fCarbs').value||'0',document.getElementById('fFat').value||'0']})}closeDlg();cp=1;rt();showT('操作成功','s')}
+function del(id){if(confirm('确认删除吗？')){users=users.filter(function(x){return x.Id!==id});rt();showT('删除成功','s')}}
+function doSearch(){rt()}
+function resetSearch(){['sName'].forEach(function(id){document.getElementById(id).value=''});document.getElementById('sType').value='';rt()}
+
+var sidebarData=[
+  {type:'item',icon:'🏠',text:'控制台',url:'admin-user-list.html',active:false},
+  {type:'group',icon:'👥',text:'用户管理',key:'um',items:[{icon:'👤',text:'账号管理',url:'admin-user-list.html',active:false}]},
+  {type:'group',icon:'🍎',text:'饮食管理',key:'dm',items:[
+    {icon:'🥗',text:'食物管理',url:'admin-food-list.html',active:true},
+    {icon:'📋',text:'食物分类',url:'admin-food-type-list.html'},
+    {icon:'⚖️',text:'食物单位',url:'admin-food-unit-list.html'},
+    {icon:'📖',text:'食谱管理',url:'admin-recipe-list.html'},
+    {icon:'📊',text:'饮食记录',url:'admin-diet-record-list.html'},
+  ]},
+  {type:'group',icon:'🏃',text:'运动管理',key:'sm',items:[
+    {icon:'🏋️',text:'运动参考',url:'admin-sport-list.html'},
+    {icon:'📏',text:'运动单位',url:'admin-sport-unit-list.html'},
+    {icon:'📈',text:'运动记录',url:'admin-sport-record-list.html'},
+  ]},
+  {type:'group',icon:'💚',text:'健康管理',key:'hm',items:[
+    {icon:'🩺',text:'健康指标',url:'admin-health-indicator-list.html'},
+    {icon:'📑',text:'指标分类',url:'admin-health-indicator-type-list.html'},
+    {icon:'📋',text:'指标记录',url:'admin-health-indicator-record-list.html'},
+    {icon:'⏰',text:'健康提醒',url:'admin-health-notice-list.html'},
+  ]},
+  {type:'group',icon:'📚',text:'知识管理',key:'km',items:[
+    {icon:'📄',text:'健康知识',url:'admin-health-article-list.html'},
+    {icon:'🏷️',text:'知识分类',url:'admin-health-article-type-list.html'},
+  ]},
+  {type:'group',icon:'💖',text:'互动管理',key:'im',items:[
+    {icon:'⭐',text:'收藏记录',url:'admin-collect-record-list.html'},
+    {icon:'👍',text:'点赞记录',url:'admin-like-record-list.html'},
+  ]},
+];
+function renderSidebar(){var h='',expanded={'dm':true};sidebarData.forEach(function(item){if(item.type==='item'){h+='<div class="m-item'+(item.active?' active':'')+'" onclick="navTo(\''+item.url+'\')"><div class="m-content"><span class="m-icon">'+item.icon+'</span><span class="m-text">'+item.text+'</span></div></div>'}else{var isExp=expanded[item.key];h+='<div class="m-group"><div class="m-item m-sub-h'+(isExp?' expanded':'')+'" onclick="toggleSub(\''+item.key+'\',this)"><div class="m-content"><span class="m-icon">'+item.icon+'</span><span class="m-text">'+item.text+'</span><span class="m-expand'+(isExp?' open':'')+'">▶</span></div></div><div class="sub-container'+(isExp?' show':'')+'" id="sub-'+item.key+'">';item.items.forEach(function(sub){h+='<div class="sub-item'+(sub.active?' active':'')+'" onclick="navTo(\''+sub.url+'\')"><span class="sub-icon">'+sub.icon+'</span><span class="sub-text">'+sub.text+'</span></div>'});h+='</div></div>'}});document.getElementById('sidebarNav').innerHTML=h}
+function toggleSub(key,el){var s=document.getElementById('sub-'+key);var ic=el.querySelector('.m-expand');s.classList.toggle('show');ic.classList.toggle('open');el.classList.toggle('expanded')}
+function navTo(url){window.location.href=url}
+function doLogout(){if(confirm('确定退出吗？'))window.location.href='admin-login.html'}
+function showT(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'s')+' show';setTimeout(function(){t.classList.remove('show')},2000)}
+renderSidebar();rt();
+document.addEventListener('click',function(e){if(!e.target.closest('.dropdown'))document.getElementById('dm').classList.remove('show')});
+</script>
+</body></html>
